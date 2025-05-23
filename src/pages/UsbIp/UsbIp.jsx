@@ -1,18 +1,11 @@
 import React, { useState } from 'react';
-import { Copy } from 'lucide-react';
+import { ArrowLeft, Copy } from 'lucide-react';
 import './UsbIp.css';
-
+ 
 function UsbIp() {
-  const [view, setView] = useState('ip');
   const [fpgaInfo, setFpgaInfo] = useState(null);
   const [connectedFpga, setConnectedFpga] = useState(null);
-
-  const devices = [
-    { name: 'Device 1 ECTY', ip: '100.72.64.52' },
-    { name: 'Device 2 Sanjose', ip: '100.56.31.22' },
-    { name: 'Device 3 Texas', ip: '100.16.22.33' }
-  ];
-
+ 
   const handleFPGAConnect = (device) => {
     setFpgaInfo({ loading: true, ...device });
     setTimeout(() => {
@@ -20,53 +13,41 @@ function UsbIp() {
       setConnectedFpga(device.name);
     }, 2000);
   };
-
+ 
   const closeFPGAInfo = () => setFpgaInfo(null);
   const handleDisconnect = () => {
     setConnectedFpga(null);
     setFpgaInfo(null);
   };
-
+ 
   return (
     <div>
-      {view === 'ip' && (
-        <div className="container">
-          <h1 className="title">Select RutoMatrix Device</h1>
-          <div className="cards-grid">
-            {devices.map((device, idx) => (
-              <DeviceCard key={idx} device={device} onClick={() => setView('fpga')} />
-            ))}
-          </div>
+      <div className="UsbIp-header">
+        <h2>UsbIP</h2>
+      </div>
+      <div className="container">
+        <h1 className="title">Select FPGA Device</h1>
+        <div className="cards-grid">
+          <FPGACard
+            title="FPGA Device 180"
+            desc="High-performance computing device"
+            onConnect={() => handleFPGAConnect({ name: 'FPGA Device 180' })}
+            isConnected={connectedFpga === 'FPGA Device 180'}
+          />
+          <FPGACard
+            title="FPGA Device 190"
+            desc="Low-latency optimization device"
+            onConnect={() =>
+              handleFPGAConnect({
+                name: 'FPGA Device 190',
+                details: 'Specialized low-latency device for real-time tasks.'
+              })
+            }
+            isConnected={connectedFpga === 'FPGA Device 190'}
+          />
         </div>
-      )}
-
-      {view === 'fpga' && (
-        <div className="container">
-          <button className="back-button" onClick={() => setView('ip')}>&lt;</button>
-          <h1 className="title">Select FPGA Device</h1>
-          <div className="cards-grid">
-            <FPGACard
-              title="FPGA Device 180"
-              desc="High-performance computing device"
-              onConnect={() => handleFPGAConnect({ name: 'FPGA Device 180' })}
-              isConnected={connectedFpga === 'FPGA Device 180'}
-            />
-            <FPGACard
-              title="FPGA Device 190"
-              desc="Low-latency optimization device"
-              onConnect={() =>
-                handleFPGAConnect({
-                  name: 'FPGA Device 190',
-                  details:
-                    'Specialized low-latency device designed for high-frequency trading and real-time signal processing.'
-                })
-              }
-              isConnected={connectedFpga === 'FPGA Device 190'}
-            />
-          </div>
-        </div>
-      )}
-
+      </div>
+ 
       {fpgaInfo && (
         <FPGAInfoModal
           info={fpgaInfo}
@@ -77,21 +58,7 @@ function UsbIp() {
     </div>
   );
 }
-
-// DeviceCard Component
-const DeviceCard = ({ device, onClick }) => (
-  <div className="card" onClick={onClick}>
-    <div className="card-content">
-      <div className="icon-wrapper">
-        <div className="pulse-ring" />
-        <div className="status-dot" />
-      </div>
-      <h2>{device.name}</h2>
-      <p>{device.ip}</p>
-    </div>
-  </div>
-);
-
+ 
 // FPGACard Component
 const FPGACard = ({ title, desc, onConnect, isConnected }) => (
   <div className="fpga-card">
@@ -111,17 +78,17 @@ const FPGACard = ({ title, desc, onConnect, isConnected }) => (
     </div>
   </div>
 );
-
+ 
 // FPGAInfoModal Component
 const FPGAInfoModal = ({ info, onClose, onDisconnect }) => {
   const [os, setOs] = useState('linux');
   const [protocol, setProtocol] = useState('jtag');
   const [action, setAction] = useState('attach');
   const [copied, setCopied] = useState(false);
-
+ 
   const handleOsChange = (event) => setOs(event.target.value);
   const handleProtocolSelect = (protocolType) => setProtocol(protocolType);
-
+ 
   const handleCopy = () => {
     const command = document.getElementById('command-text').innerText;
     navigator.clipboard.writeText(command).then(() => {
@@ -129,25 +96,25 @@ const FPGAInfoModal = ({ info, onClose, onDisconnect }) => {
       setTimeout(() => setCopied(false), 1500);
     });
   };
-
+ 
   const getMessage = () => {
     if (action === 'attach') {
       if (protocol === 'jtag' && os === 'linux') {
-        return "sudo usbip attach --remote=<replace your tailscale ip > --busid=1-1.1";
+        return 'sudo usbip attach --remote=<replace your tailscale ip> --busid=1-1.1';
       } else if (protocol === 'jtag' && os === 'windows') {
-        return "usbip.exe attach -r <usbip server ip> -b 1-1.1";
+        return 'usbip.exe attach -r <usbip server ip> -b 1-1.1';
       } else if (protocol === 'uart' && os === 'linux') {
-        return "sudo usbip attach --remote=<replace your tailscale ip > --busid=1-1.3";
+        return 'sudo usbip attach --remote=<replace your tailscale ip> --busid=1-1.3';
       } else if (protocol === 'uart' && os === 'windows') {
-        return "usbip.exe attach -r <usbip server ip> -b 1-1.3";
+        return 'usbip.exe attach -r <usbip server ip> -b 1-1.3';
       }
     } else if (action === 'detach') {
-      if (protocol === 'jtag') return "usbip.exe detach -p 01";
-      if (protocol === 'uart') return "usbip.exe detach -p 00";
+      if (protocol === 'jtag') return 'usbip.exe detach -p 01';
+      if (protocol === 'uart') return 'usbip.exe detach -p 00';
     }
     return 'Command Generation ...';
   };
-
+ 
   return (
     <div className="fpga-info">
       <div className="modal-content">
@@ -173,7 +140,7 @@ const FPGAInfoModal = ({ info, onClose, onDisconnect }) => {
                   <option value="windows">Windows</option>
                 </select>
               </div>
-
+ 
               <div className="protocol-radio-group">
                 <label>Choose Protocol:</label>
                 <div className="radio-options">
@@ -188,7 +155,7 @@ const FPGAInfoModal = ({ info, onClose, onDisconnect }) => {
                   <label htmlFor="jtag" className={`radio-label ${protocol === 'jtag' ? 'selected' : ''}`}>
                     JTAG
                   </label>
-
+ 
                   <input
                     type="radio"
                     id="uart"
@@ -202,7 +169,7 @@ const FPGAInfoModal = ({ info, onClose, onDisconnect }) => {
                   </label>
                 </div>
               </div>
-
+ 
               <div className="action-radio">
                 <label>Choose Action:</label>
                 <label>
@@ -225,7 +192,7 @@ const FPGAInfoModal = ({ info, onClose, onDisconnect }) => {
                 </label>
               </div>
             </div>
-
+ 
             <div className="os-message-container">
               <div className="command-wrapper">
                 <p id="command-text">{getMessage()}</p>
@@ -235,13 +202,15 @@ const FPGAInfoModal = ({ info, onClose, onDisconnect }) => {
                 {copied && <span className="tooltip">Command copied</span>}
               </div>
             </div>
-
-            <button className="disconnect-btn" onClick={onDisconnect}>Disconnect</button>
+ 
+            <button className="disconnect-btn" onClick={onDisconnect}>
+              Disconnect
+            </button>
           </>
         )}
       </div>
     </div>
   );
 };
-
+ 
 export default UsbIp;

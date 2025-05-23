@@ -80,6 +80,7 @@ export default function App() {
 
   return (
     <Router>
+      
       <AppRoutes
         isAuthenticated={isAuthenticated}
         setIsAuthenticated={setIsAuthenticated}

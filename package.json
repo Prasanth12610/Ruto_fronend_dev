@@ -2,7 +2,6 @@
   "name": "ruto_dev",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://100.69.116.101:7417",
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.22-rc.20250304",
     "@react-three/drei": "^10.0.7",
