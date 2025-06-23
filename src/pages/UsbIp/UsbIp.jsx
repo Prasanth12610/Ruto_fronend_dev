@@ -23,7 +23,7 @@ function UsbIp() {
   return (
     <div>
       <div className="UsbIp-header">
-        <h2>UsbIP</h2>
+        <h2>USB Over Network</h2>
       </div>
       <div className="container">
         <h1 className="title">Select FPGA Device</h1>

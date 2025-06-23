@@ -27,7 +27,7 @@ const Sidebar = () => {
 
   const handleLogout = () => {
     // Add any logout logic (e.g., clearing auth tokens)
-    navigate('/auth');
+    navigate('/');
   };
 
   const toggleProfileMenu = () => {
@@ -37,12 +37,20 @@ const Sidebar = () => {
   const menuItems = [
     { to: '/videostream', label: 'VirtualDesk', icon: <MonitorSmartphone size={18} /> },
     { to: '/audio', label: 'Audio', icon: <Volume2 size={18} /> },
-    { to: '/camera', label: 'Camera', icon: <CameraIcon size={18} /> },
-    { to: '/thermal', label: 'Thermal', icon: <ThermometerSun size={18} /> },
-    { to: '/UsbIp', label: 'USB IP', icon: <Usb size={18} /> },
-    { to: '/debugger', label: 'Debugger', icon: <Bug size={18} /> },
-    { to: '/protocol', label: 'Protocol', icon: <Share2 size={18} /> },
-    { to: '/ruto-vault', label: 'Ruto Vault', icon: <Brain size={18} /> },
+    {
+      to: '/thermocam',
+      label: 'ThermoCam',
+      icon: (
+        <span style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+          <ThermometerSun size={14} />
+          <CameraIcon size={18} />
+        </span>
+      ),
+    },
+    //{ to: '/UsbIp', label: 'UON', icon: <Usb size={18} /> },
+   // { to: '/debugger', label: 'Debugger', icon: <Bug size={18} /> },
+   // { to: '/protocol', label: 'Protocol', icon: <Share2 size={18} /> },
+   // { to: '/ruto-vault', label: 'RutoVault', icon: <Brain size={18} /> },
     { to: '/settings', label: 'Settings', icon: <LayoutGrid size={18} /> },
   ];
 

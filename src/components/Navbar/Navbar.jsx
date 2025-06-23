@@ -17,12 +17,19 @@ import TessolveLogo from '../../assets/tessolve.png';
 
 import styles from './Navbar.module.css';
 
+// Custom icon component combining Camera and ThermometerSun
+const ThermalCameraIcon = () => (
+  <span style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+    <ThermometerSun size={14} color="#fff" />
+    <CameraIcon size={18} color="#fff" />
+  </span>
+);
+
 const routeIcons = {
   '/':            <MonitorSmartphone size={20} color="#fff" />,
   '/streamer':    <MonitorSmartphone size={20} color="#fff" />,
   '/audio':       <Volume2 size={20} color="#fff" />,
-  '/camera':      <CameraIcon size={20} color="#fff" />,
-  '/thermal':     <ThermometerSun size={20} color="#fff" />,
+  '/thermocam':   <ThermalCameraIcon />,
   '/UsbIp':       <Usb size={20} color="#fff" />,
   '/debugger':    <Bug size={20} color="#fff" />,
   '/protocol':    <Share2 size={20} color="#fff" />,
