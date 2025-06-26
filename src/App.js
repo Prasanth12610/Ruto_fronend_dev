@@ -8,7 +8,6 @@ import {
  
 import Sidebar from './components/Sidebar/Sidebar';
 import Navbar from './components/Navbar/Navbar';
-import DeviceList from './components/DeviceList/DeviceList';
 import VideoStream from './pages/VideoStream/VideoStream';
 import Audio from './pages/Audio/Audio';
 import ThermoCam from './pages/ThermoCam/ThermoCam';
@@ -33,6 +32,7 @@ function LayoutWithSidebar() {
 function AppContent() {
   return (
     <Routes>
+      <Route path="/"            element={<VideoStream />} />
       <Route path="/videostream" element={<VideoStream />} />
       <Route path="/audio"       element={<Audio />} />
       <Route path="/thermocam"   element={<ThermoCam />} />
@@ -44,15 +44,6 @@ function AppContent() {
 }
  
 function AppWrapper() {
-  const location = useLocation();
-  const path = location.pathname;
- 
-  // Only show DeviceList at root path (no sidebar or navbar)
-  if (path === '/') {
-    return <DeviceList />;
-  }
- 
-  // For all other routes, show sidebar layout
   return <LayoutWithSidebar />;
 }
  

@@ -317,55 +317,6 @@ export default function MergedCamera() {
           </div>
         )}
       </div>
-
-      <div className="servo-panel">
-        <h3>Dual Servo Control</h3>
-
-        <div className="servo-control">
-          <label>Horizontal: {servo.horizontal}°</label>
-          <input
-            type="range"
-            min="0"
-            max="180"
-            value={servo.horizontal}
-            onChange={handleServoChange('horizontal')}
-          />
-        </div>
-
-        <div className="servo-control">
-          <label>Vertical: {servo.vertical}°</label>
-          <input
-            type="range"
-            min="0"
-            max="180"
-            value={servo.vertical}
-            onChange={handleServoChange('vertical')}
-          />
-        </div>
-
-        <div className="thermal-analysis">
-          <h3 className="thermal-analysis-title">Temperature Analysis</h3>
-          <div className="thermal-stats">
-            <div className="thermal-stat">
-              <span>Maximum Temp:</span>
-              <span className="thermal-high">{tempStats.maxTemp}°F</span>
-            </div>
-            <div className="thermal-stat">
-              <span>Minimum Temp:</span>
-              <span className="thermal-low">{tempStats.minTemp}°F</span>
-            </div>
-            <div className="thermal-stat">
-              <span>Average Temp:</span>
-              <span>{tempStats.avgTemp}°F</span>
-            </div>
-            <div className="thermal-stat">
-              <span>Center Temp:</span>
-              <span>{tempStats.centerTemp}°F</span>
-            </div>
-          </div>
-          <button className="thermal-export-button">Export Thermal Data</button>
-        </div>
-      </div>
     </div>
   );
 }
