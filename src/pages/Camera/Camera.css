@@ -82,7 +82,7 @@
   background-color: #000;
   border-radius: 10px;
   overflow: hidden;
-  aspect-ratio: 16/7;
+  aspect-ratio: 16/10;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -98,7 +98,7 @@
 }
 
 .camera-stream {
-  width: 100%;
+  width: 85%;
   height: 100%;
   object-fit: cover;
 }
@@ -158,4 +158,60 @@
 .camera-feed.camera-3 {
   margin-left: auto;  /* Push to the right */
   margin-right: auto; /* Center horizontally */
+}
+
+.refresh-icon-button {
+  background-color: #f0f0f0;
+  border: none;
+  margin-left: 8px;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ff6a00;
+}
+
+.refresh-icon-button:hover {
+  background-color: #e65c00;
+}
+
+.camera-header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.camera-connecting-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  border-radius: 10px;
+  z-index: 5;
+  text-shadow: 1px 1px 4px black;
+}
+
+.mini-spinner {
+  width: 30px;
+  height: 30px;
+  border: 4px solid transparent;
+  border-top: 4px solid #ff6a00;
+  border-right: 4px solid #1281d6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

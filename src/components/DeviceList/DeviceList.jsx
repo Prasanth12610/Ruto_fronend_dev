@@ -76,7 +76,7 @@ function DeviceList() {
         />
         <label htmlFor="theme-toggle" className="theme-label">
           <span>
-            {theme === 'light' ? <Sun size={20} /> : <Moon size={20} />}
+            {theme === 'light' ? <Sun size={20} color= "#1281d6" /> : <Moon size={20} color= "#1281d6" />}
           </span>
         </label>
       </div>
@@ -117,3 +117,4 @@ function DeviceList() {
 }
  
 export default DeviceList;
+

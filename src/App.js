@@ -27,6 +27,7 @@ function LayoutWithSidebar() {
         <Navbar />
         <div style={{ padding: '1rem', flex: 1, overflowY: 'auto' }}>
           <Routes>
+           
             <Route path="/videostream" element={<VideoStream />} />
             <Route path="/audio"       element={<Audio />} />
             <Route path="/thermal"     element={<Thermal />} />
@@ -63,10 +64,10 @@ function AppRoutes({ isAuthenticated, setIsAuthenticated }) {
   }
 
   // Root device list
-  if (path === '/') {
+  if (path === '/devicelist') {
     return (
       <Routes>
-        <Route path="/" element={<DeviceList />} />
+        <Route path="/devicelist" element={<DeviceList />} />
       </Routes>
     );
   }

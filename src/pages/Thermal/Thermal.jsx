@@ -1,62 +1,106 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { Camera as CameraIcon, Maximize2, X } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Camera as CameraIcon, Maximize2, X, RefreshCw } from 'lucide-react';
+import html2canvas from 'html2canvas';
 import './Thermal.css';
 
 export default function Thermal() {
-  const videoRef1 = useRef(null);
-  const videoRef2 = useRef(null);
-  const videoRef3 = useRef(null);
   const canvasRef = useRef(null);
-  const [started, setStarted] = useState(false);
   const [image, setImage] = useState(null);
   const [servo, setServo] = useState({ horizontal: 90, vertical: 90 });
   const [activeCamera, setActiveCamera] = useState('ALL');
   const [selectedCamera, setSelectedCamera] = useState('ALL');
-  
-  // Temperature stats
+  const [startedCameras, setStartedCameras] = useState({});
+  const [connectingStatus, setConnectingStatus] = useState({}); // 'connecting' | 'disconnecting' | false
+
   const [tempStats, setTempStats] = useState({
     maxTemp: 0,
     minTemp: 0,
     avgTemp: 0,
-    centerTemp: 0
+    centerTemp: 0,
   });
 
-  useEffect(() => {
-    const videoEl1 = videoRef1.current;
-    const videoEl2 = videoRef2.current;
-    const videoEl3 = videoRef3.current;
+  const cameraAPIMap = {
+    'camera-1': 'https://100.68.107.103:7123/thermal',
+    'camera-2': '',
+    'camera-3': '',
+  };
 
-    return () => {
-      [videoEl1, videoEl2, videoEl3].forEach(video => {
-        if (video?.srcObject) {
-          video.srcObject.getTracks().forEach(t => t.stop());
-        }
-      });
-    };
-  }, []);
-
-  const startCamera = async (videoRef) => {
+  const Cors = async () => {
+    window.open('https://100.68.107.103:7123/thermal_verified', '_blank');
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      videoRef.current.srcObject = stream;
-      setStarted(true);
-    } catch (e) {
-      console.error('Camera error', e);
+      const response = await fetch('https://100.68.107.103:7123/thermal_verified', {
+        method: 'GET',
+        mode: 'cors',
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      const data = await response.json();
+      console.log('Verification API Response:', data);
+
+      if (data.ok && data.status === 'verified') {
+        alert('Thermal Camera is verified!');
+      } else {
+        alert('Thermal Camera verification failed.');
+      }
+    } catch (error) {
+      console.error('Verification API Error:', error);
+      alert('Verifying Thermal camera Permission.');
     }
   };
 
-  const capture = () => {
-    const video = videoRef1.current;
-    const canvas = canvasRef.current;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    setImage(canvas.toDataURL('image/png'));
+  const startStreaming = async () => {
+    // Show "connecting" for cameras with URLs
+    ['camera-1', 'camera-2', 'camera-3'].forEach((cameraKey) => {
+      if (cameraAPIMap[cameraKey]) {
+        setConnectingStatus((prev) => ({ ...prev, [cameraKey]: 'connecting' }));
+        setStartedCameras((prev) => ({ ...prev, [cameraKey]: false })); // hide streams while connecting
+      }
+    });
+
+    try {
+      await fetch('http://100.68.107.103:8001/start-thermal', { method: 'POST' });
+    } catch (error) {
+      console.error('Error starting thermal stream:', error);
+    }
+
+    // After 5 sec, hide overlay and show streams
+    setTimeout(() => {
+      ['camera-1', 'camera-2', 'camera-3'].forEach((cameraKey) => {
+        if (cameraAPIMap[cameraKey]) {
+          setConnectingStatus((prev) => ({ ...prev, [cameraKey]: false }));
+          setStartedCameras((prev) => ({ ...prev, [cameraKey]: true }));
+        }
+      });
+    }, 5000);
+  };
+
+  const stopStreaming = async () => {
+    // Show "disconnecting" for cameras with URLs
+    ['camera-1', 'camera-2', 'camera-3'].forEach((cameraKey) => {
+      if (cameraAPIMap[cameraKey]) {
+        setConnectingStatus((prev) => ({ ...prev, [cameraKey]: 'disconnecting' }));
+        setStartedCameras((prev) => ({ ...prev, [cameraKey]: false })); // hide streams immediately
+      }
+    });
+
+    try {
+      await fetch('http://100.68.107.103:8001/stop-thermal', { method: 'POST' });
+    } catch (error) {
+      console.error('Error stopping thermal stream:', error);
+    }
+
+    // After 5 sec, hide overlay
+    setTimeout(() => {
+      ['camera-1', 'camera-2', 'camera-3'].forEach((cameraKey) => {
+        setConnectingStatus((prev) => ({ ...prev, [cameraKey]: false }));
+      });
+    }, 5000);
   };
 
   const handleServoChange = (axis) => (e) => {
     const val = parseInt(e.target.value, 10);
-    setServo(s => ({ ...s, [axis]: val }));
+    setServo((s) => ({ ...s, [axis]: val }));
     console.log(`Servo ${axis}: ${val}°`);
   };
 
@@ -67,32 +111,52 @@ export default function Thermal() {
     } else {
       setActiveCamera(cameraIndex);
       setSelectedCamera(cameraIndex);
+      if (cameraAPIMap[cameraIndex]) {
+        setStartedCameras((prev) => ({ ...prev, [cameraIndex]: true }));
+      }
     }
-  };
-
-  const closeFullscreen = () => {
-    setActiveCamera('ALL');
-    setSelectedCamera('ALL');
   };
 
   const handleDropdownChange = (e) => {
     const selected = e.target.value;
     setSelectedCamera(selected);
     setActiveCamera(selected);
-    if (selected !== 'ALL') {
-      const videoRef = selected === 'camera-1' ? videoRef1 : selected === 'camera-2' ? videoRef2 : videoRef3;
-      startCamera(videoRef);
+    if (selected !== 'ALL' && cameraAPIMap[selected]) {
+      setStartedCameras((prev) => ({ ...prev, [selected]: true }));
     }
   };
 
+  const capture = () => {
+    html2canvas(document.body).then((canvas) => {
+      const imgData = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = imgData;
+      link.download = 'full_page_capture.png';
+      link.click();
+      setImage(imgData);
+    });
+  };
+
   return (
-    <div className="camera-container">
-      <div className="camera-panel">
-        <div className="camera-header">
+    <div className="thermal-container">
+      <div className="thermal-panel">
+        <div className="thermal-header">
           <h2>Thermal Feed</h2>
-          <div className="camera-controls">
+          <div className="thermal-header-buttons">
+            <button className="thermal-capture-button" onClick={startStreaming}>
+              Start-Streaming
+            </button>
+            <button className="thermal-capture-button" onClick={stopStreaming}>
+              Stop-Streaming
+            </button>
+            <button className="refresh-icon-button" onClick={Cors} title="Refresh">
+              <RefreshCw size={16} />
+            </button>
+          </div>
+
+          <div className="thermal-controls">
             <select
-              className="camera-select"
+              className="thermal-select"
               value={selectedCamera}
               onChange={handleDropdownChange}
             >
@@ -101,25 +165,57 @@ export default function Thermal() {
               <option value="camera-2">Camera 2</option>
               <option value="camera-3">Camera 3</option>
             </select>
-            <button className="camera-capture-button" onClick={capture}>
+            <button className="thermal-capture-button" onClick={capture}>
               <CameraIcon size={20} /> Capture
             </button>
           </div>
         </div>
 
-        <div className="camera-feeds">
-          {['camera-1', 'camera-2', 'camera-3'].map((camera, index) => {
+        <div className={`thermal-feeds ${activeCamera !== 'ALL' ? 'fullscreen-active' : ''}`}>
+          {['camera-1', 'camera-2', 'camera-3'].map((camera) => {
             if (activeCamera === 'ALL' || activeCamera === camera) {
               return (
                 <div
-                  className={`camera-feed ${camera} ${activeCamera === camera ? 'fullscreen' : ''}`}
+                  className={`thermal-feed ${camera} ${activeCamera === camera ? 'fullscreen' : ''}`}
                   key={camera}
                   onClick={() => toggleFullscreen(camera)}
                 >
-                  <div className="camera-feed-container">
-                    {started
-                      ? <video ref={videoRef1} autoPlay playsInline className="camera-stream" />
-                      : <div className="camera-placeholder">Select Camera to Start</div>}
+                  <div className="thermal-feed-container" style={{ position: 'relative' }}>
+                    {startedCameras[camera] ? (
+                      <>
+                        <img
+                          src={cameraAPIMap[camera]}
+                          alt={`${camera} stream`}
+                          className="thermal-stream"
+                        />
+                        {(connectingStatus[camera] === 'connecting' ||
+                          connectingStatus[camera] === 'disconnecting') && (
+                          <div className="camera-connecting-overlay">
+                            <div className="mini-spinner" />
+                            {connectingStatus[camera] === 'connecting'
+                              ? 'Connecting...'
+                              : 'Disconnecting...'}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {/* Show overlay even when not started but status is connecting/disconnecting */}
+                        {(connectingStatus[camera] === 'connecting' ||
+                          connectingStatus[camera] === 'disconnecting') ? (
+                          <div className="camera-connecting-overlay">
+                            <div className="mini-spinner" />
+                            {connectingStatus[camera] === 'connecting'
+                              ? 'Connecting...'
+                              : 'Disconnecting...'}
+                          </div>
+                        ) : (
+                          <div className="thermal-placeholder">
+                            Click to Start {camera.replace('-', ' ')}
+                          </div>
+                        )}
+                      </>
+                    )}
                     <div className="fullscreen-icon">
                       {activeCamera === camera ? <X size={20} /> : <Maximize2 size={20} />}
                     </div>
@@ -133,13 +229,12 @@ export default function Thermal() {
 
         <canvas ref={canvasRef} style={{ display: 'none' }} />
         {image && (
-          <div className="camera-feed">
-            <img src={image} alt="captured" className="camera-stream" />
+          <div className="thermal-feed">
+            <img src={image} alt="captured" className="thermal-stream" />
           </div>
         )}
       </div>
 
-      {/* Servo Panel */}
       <div className="servo-panel">
         <h3>Dual Servo Control</h3>
 
@@ -165,30 +260,28 @@ export default function Thermal() {
           />
         </div>
 
-      {/* Thermal Analysis Panel Below Servo */}
-      <div className="thermal-analysis">
-        <h3 className="thermal-analysis-title">Temperature Analysis</h3>
-
-        <div className="thermal-stats">
-          <div className="thermal-stat">
-            <span>Maximum Temp:</span>
-            <span className="thermal-high">{tempStats.maxTemp}°C</span>
+        <div className="thermal-analysis">
+          <h3 className="thermal-analysis-title">Temperature Analysis</h3>
+          <div className="thermal-stats">
+            <div className="thermal-stat">
+              <span>Maximum Temp:</span>
+              <span className="thermal-high">{tempStats.maxTemp}°C</span>
+            </div>
+            <div className="thermal-stat">
+              <span>Minimum Temp:</span>
+              <span className="thermal-low">{tempStats.minTemp}°C</span>
+            </div>
+            <div className="thermal-stat">
+              <span>Average Temp:</span>
+              <span>{tempStats.avgTemp}°C</span>
+            </div>
+            <div className="thermal-stat">
+              <span>Center Temp:</span>
+              <span>{tempStats.centerTemp}°C</span>
+            </div>
           </div>
-
-          <div className="thermal-stat">
-            <span>Minimum Temp:</span>
-            <span className="thermal-low">{tempStats.minTemp}°C</span>
-          </div>
-
-          <div className="thermal-stat">
-            <span>Average Temp:</span>
-            <span className="thermal-avg">{tempStats.avgTemp}°C</span>
-          </div>
-          <button className="thermal-export-button">
-            Export Thermal Data
-          </button>
+          <button className="thermal-export-button">Export Thermal Data</button>
         </div>
-      </div>
       </div>
     </div>
   );

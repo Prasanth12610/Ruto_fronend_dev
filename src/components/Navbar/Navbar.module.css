@@ -3,35 +3,25 @@
   color: white;
   height: 70px;
   padding: 0 20px;
+  background-color: #0f0f0f;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: relative;
 }
-  .title {
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-  
-  .userInfo {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-  
-  .avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-  
-  /* Left logo */
+
+/* Left logo */
 .left {
   display: flex;
   align-items: center;
 }
 
+/* Center icon */
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
 
 /* Right logo */
 .right {
@@ -41,14 +31,6 @@
 
 /* Common logo style */
 .logo {
-  height: 20px; /* Adjust logo size */
+  height: 20px;
   width: auto;
-}
-
-.iconContainer {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
 }

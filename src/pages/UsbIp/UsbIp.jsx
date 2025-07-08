@@ -48,6 +48,7 @@ function UsbIp() {
         </div>
       </div>
  
+
       {fpgaInfo && (
         <FPGAInfoModal
           info={fpgaInfo}
@@ -59,6 +60,7 @@ function UsbIp() {
   );
 }
  
+
 // FPGACard Component
 const FPGACard = ({ title, desc, onConnect, isConnected }) => (
   <div className="fpga-card">
@@ -202,7 +204,6 @@ const FPGAInfoModal = ({ info, onClose, onDisconnect }) => {
                 {copied && <span className="tooltip">Command copied</span>}
               </div>
             </div>
- 
             <button className="disconnect-btn" onClick={onDisconnect}>
               Disconnect
             </button>
@@ -212,5 +213,5 @@ const FPGAInfoModal = ({ info, onClose, onDisconnect }) => {
     </div>
   );
 };
- 
+
 export default UsbIp;

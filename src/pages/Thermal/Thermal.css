@@ -1,27 +1,24 @@
 .thermal-container {
-    display: flex;
-    height: 100%;
-    color: #1281d6;
-  }
+  display: flex;
+  height: 100%;
+  color: #1281d6;
+  justify-content: space-between;
+  position: relative;
+}
   
-  .thermal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-  }
+.thermal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
   
-  .thermal-header h2 {
-    font-size: 1.5rem;
-    margin: 0;
-  }
+.thermal-controls {
+  display: flex;
+  gap: 1rem;
+}
   
-  .thermal-controls {
-    display: flex;
-    gap: 1rem;
-  }
-  
-  .thermal-button {
+.thermal-button {
     background-color: #ff6a00;
     border: none;
     padding: 0.5rem 1rem;
@@ -32,37 +29,37 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-  }
+}
   
-  .thermal-visualization {
+.thermal-visualization {
     border-radius: 10px;
     padding: 1.5rem;
     flex: 1;
     display: flex;
     flex-direction: column;
-  }
+}
   
-  .thermal-display {
+.thermal-display {
     position: relative;
     background-color: #000;
     border-radius: 10px;
     overflow: hidden;
     aspect-ratio: 16/9;
     margin-bottom: 1rem;
-  }
+}
   
-  .thermal-grid {
+.thermal-grid {
     display: grid;
     width: 100%;
     height: 100%;
-  }
+}
   
-  .thermal-pixel {
+.thermal-pixel {
     width: 100%;
     height: 100%;
-  }
+}
   
-  .thermal-scale {
+.thermal-scale {
     position: absolute;
     right: 1rem;
     top: 1rem;
@@ -73,19 +70,19 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-  }
+}
   
-  .thermal-scale-colors {
+.thermal-scale-colors {
     display: flex;
     flex-direction: column;
     height: 100%;
-  }
+}
   
-  .thermal-scale-color {
+.thermal-scale-color {
     flex: 1;
-  }
+}
   
-  .thermal-scale-labels {
+.thermal-scale-labels {
     position: absolute;
     right: 2.5rem;
     display: flex;
@@ -93,9 +90,8 @@
     justify-content: space-between;
     height: 100%;
     font-size: 0.8rem;
-  }
+}
   
- 
 .thermal-stat {
     display: flex;
     justify-content: space-between;
@@ -105,20 +101,22 @@
     font-size: 14px;
 }
   
-  .thermal-stat span {
+.thermal-stat span {
     font-weight: bold;
-  }
+}
   
-  .thermal-feed-container {
+.thermal-feed-container {
     position: relative;
-  }
+}
   
-  .thermal-stream {
-    width: 100%;
-    height: 100%;
-  }
+.thermal-stream {
+  width: 85%;
+  height: 100%;
+  object-fit: cover;
+}
+
   
-  .fullscreen-icon {
+.fullscreen-icon {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -126,28 +124,24 @@
     padding: 5px;
     border-radius: 50%;
     cursor: pointer;
-  }
+}
   
-  .thermal-dropdown {
+.thermal-dropdown {
     padding: 0.5rem;
     border-radius: 5px;
     border: 1px solid #ccc;
-  }
+}
   
-  .thermal-panel {
-    margin-top: 2rem;
-    margin-bottom: 2rem; 
-  }
   
-  .thermal-panel h3 {
+.thermal-panel h3 {
     margin-bottom: 1rem;
-  }
+}
   
-  .thermal-control {
+.thermal-control {
     margin-bottom: 1rem;
-  }
+}
   
-  .thermal-button {
+.thermal-button {
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -157,9 +151,9 @@
     color: white;
     border: none;
     border-radius: 5px;
-  }
+}
   
-  .thermal-export-button {
+.thermal-export-button {
     width: 100%;
     padding: 0.5rem;
     background-color: #ff6a00;
@@ -179,3 +173,162 @@
 .thermal-analysis {
     margin-top: 8rem; /* Adjust this value to control the space */
 }
+
+.thermal-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.thermal-capture-button {
+  background-color: #ff6a00;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.thermal-capture-button:hover {
+  background-color: #e65c00;
+}
+
+.thermal-select {
+  background-color: #2a2a2a;
+  border: none;
+  padding: 0.5rem 1rem;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.thermal-feeds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.thermal-feed {
+  width: 48%;
+  cursor: pointer;
+  position: relative;
+}
+
+.camera-1 .thermal-feed-container,
+.camera-2 .thermal-feed-container,
+.camera-3 .thermal-feed-container {
+  width: 100%; /* Ensuring each camera container takes full width in its section */
+}
+
+.thermal-feed-container {
+  position: relative;
+  background-color: #000;
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 16/10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #333;
+}
+
+.thermal-feed.camera-3 {
+  margin-left: auto;  /* Push to the right */
+  margin-right: auto; /* Center horizontally */
+}
+
+.thermal-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #777;
+  cursor: pointer;
+}
+
+/* Fullscreen Mode */
+.thermal-feeds.fullscreen-active .thermal-feed {
+  display: none;
+}
+
+.thermal-feeds.fullscreen-active .thermal-feed.fullscreen {
+  display: block;
+}
+
+.thermal-feed.fullscreen {
+  width: 100%;
+}
+
+.refresh-icon-button {
+  background-color: #f0f0f0;
+  border: none;
+  margin-left: 8px;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refresh-icon-button:hover {
+  background-color: #ff6a00;
+}
+
+.thermal-header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.camera-connecting-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-weight: 500;
+  font-size: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  border-radius: 10px;
+  animation: fadeInOverlay 0.3s ease-in-out;
+}
+
+.mini-spinner {
+  width: 30px;
+  height: 30px;
+  margin-bottom: 10px;
+  border: 4px solid transparent;
+  border-top: 4px solid #ff6a00;
+  border-right: 4px solid #1281d6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
