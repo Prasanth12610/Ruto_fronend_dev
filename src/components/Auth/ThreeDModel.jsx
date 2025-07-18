@@ -103,7 +103,7 @@ const ThreeDModel = ({ url, view = 'isometric', zoomDirection = 0, rotate = fals
       alignItems: 'center',
       justifyContent: 'center',
     }}>
-      <div style={{ height: '980px', width: '1000px', position: 'relative' }}>
+      <div style={{ height: '900px', width: '1000px', position: 'relative' }}>
         <Canvas>
           <PerspectiveCamera makeDefault position={[5, 5, 5]} />
           <ambientLight intensity={0.5} />
