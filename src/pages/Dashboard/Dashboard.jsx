@@ -314,7 +314,9 @@ const Dashboard = () => {
     const title = `Rutomatrix &#x2022; ${deviceName} - ${ipType}`;
 
     const isCT = ["CT1", "CT2", "CT3"].some((ct) => device.name.includes(ct));
-    const isPulse = ["Pulse1", "Pulse2", "Pulse3"].some((pulse) => device.name.includes(pulse));
+    const isPulse = ["Pulse1", "Pulse2", "Pulse3"].some((pulse) =>
+      device.name.includes(pulse)
+    );
     const isPC = device.name.includes("PC");
 
     // Timer script that will receive updates from parent window
@@ -565,7 +567,23 @@ const Dashboard = () => {
     height: 0;
     border-style: solid;
     cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease;
   }
+
+  /* Hover effect for all arrows */
+  .arrow:hover {
+    transform: scale(1.2);
+    filter: brightness(1.2);
+  }
+
+  /* Click effect (brief push-in animation) */
+/* Active class for keyboard-triggered highlight */
+.arrow.active {
+  transform: scale(0.95);
+  opacity: 1;
+  filter: brightness(1.4);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
 
   .arrow.up {
     border-width: 0 20px 20px 20px;
@@ -587,12 +605,23 @@ const Dashboard = () => {
     border-color: transparent transparent transparent #FF6A00;
   }
 
+  /* Center dot enhancements */
   .arrow.center {
     width: 20px;
     height: 20px;
     background-color: #FF6A00;
     border-radius: 50%;
     margin: auto;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+  }
+
+  .arrow.center:hover {
+    transform: scale(1.2);
+    background-color: #ffa347;
+  }
+
+  .arrow.center:active {
+    transform: scale(0.9);
   }
 
   .angle-display {
@@ -902,6 +931,12 @@ const Dashboard = () => {
           </svg>
           Start Stream
         </button>
+        <button class="control-btn hidden" id="reset-btn">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.3-.42 2.5-1.13 3.46l1.48 1.48A7.963 7.963 0 0 0 20 12c0-4.42-3.58-8-8-8zm-6.87.54L3.65 6.35A7.963 7.963 0 0 0 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3c-3.31 0-6-2.69-6-6 0-1.3.42-2.5 1.13-3.46z" fill="currentColor"/>
+          </svg>
+          Reset
+        </button>
         <button class="control-btn" id="servo-toggle-btn">
           <svg viewBox="0 0 24 24" width="16" height="16">
             <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" fill="none" />
@@ -962,6 +997,8 @@ const Dashboard = () => {
       const thermalVerifiedAPI = "http://100.68.107.103:8002/thermal_verified";
       const startServoAPI = "http://100.68.107.103:8000/start-servo";
       const stopServoAPI = "http://100.68.107.103:8000/stop-servo";
+      const panel = document.getElementById('servo-panel');
+      const angleDisplay = document.getElementById('angle-display');
 
       // DOM elements
       const cameraFeed = document.getElementById('camera-feed');
@@ -970,9 +1007,9 @@ const Dashboard = () => {
       const thermalError = document.getElementById('thermal-error');
       const refreshBtn = document.getElementById('refresh-btn');
       const streamBtn = document.getElementById('stream-btn');
-      
+      const resetBtn = document.getElementById('reset-btn');
       const toggleBtn = document.getElementById('servo-toggle-btn');
-    
+
 
       // State variables
       let isCorsVerified = false;
@@ -982,6 +1019,10 @@ const Dashboard = () => {
       // Initialize UI
       streamBtn.style.backgroundColor = '#ff4444';
       streamBtn.disabled = false;
+
+      refreshBtn.disabled = true;
+      refreshBtn.style.backgroundColor = '#ff4444';
+
 
       toggleBtn.addEventListener('click', () => {
         panel.classList.toggle('hidden');
@@ -1019,6 +1060,16 @@ const Dashboard = () => {
       async function initializeServices() {
         try {
           showLoadingState();
+
+          // Disable refresh button & set red background
+          refreshBtn.disabled = true;
+          refreshBtn.style.backgroundColor = '#ff4444';
+
+          // Wait for 3.5 seconds (or 3000 ms)
+          setTimeout(() => {
+            refreshBtn.disabled = false;
+            refreshBtn.style.backgroundColor = '';  // Reset to default
+          }, 3000);
 
           // Start both camera and thermal services
           const servicesStarted = await Promise.all([
@@ -1071,12 +1122,38 @@ const Dashboard = () => {
             testConnection(cameraVerifiedAPI),
             testConnection(thermalVerifiedAPI)
           ]);
-          
-          if (!cameraReachable || !thermalReachable) {
-            throw new Error('Servers unreachable: Camera ' + (cameraReachable ? 'OK' : 'DOWN') + 
-                          ', Thermal ' + (thermalReachable ? 'OK' : 'DOWN'));
+
+           resetBtn.addEventListener('click', async () => {
+        resetBtn.disabled = true;
+        resetBtn.textContent = 'Resetting...';
+
+        try {
+          const [stopCameraRes, stopThermalRes] = await Promise.all([
+            fetch(stopCameraAPI, { method: 'GET' }),
+            fetch(stopThermalAPI, { method: 'GET' })
+          ]);
+
+          if (stopCameraRes.ok && stopThermalRes.ok) {
+            showAlert('success', 'Reset completed successfully.');
+            resetBtn.classList.add('hidden'); // Hide button after successful reset
+          } else {
+            showAlert('error', 'Reset failed. Please check server.');
           }
+        } catch (error) {
+          console.error('Reset failed:', error);
+          showAlert('error', 'Reset failed due to network error.');
+        } finally {
+          resetBtn.disabled = false;
+          resetBtn.textContent = 'Reset';
+        }
+      });
           
+      if (!cameraReachable || !thermalReachable) {
+        throw new Error('Servers unreachable: Camera ' + (cameraReachable ? 'OK' : 'DOWN') + 
+                      ', Thermal ' + (thermalReachable ? 'OK' : 'DOWN'));
+          resetBtn.classList.remove('hidden');  // Show Reset button
+      }
+
           // Then verify endpoints
           const [cameraResponse, thermalResponse] = await Promise.all([
             fetch(cameraVerifiedAPI, { 
@@ -1215,8 +1292,7 @@ const Dashboard = () => {
           cameraFeed.innerHTML = '<div class="feed-Placeholder">Camera feed stopped</div>';
           thermalFeed.innerHTML = '<div class="feed-Placeholder">Thermal feed stopped</div>';
           streamBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M16 16v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4m4-4v16" fill="none" stroke="currentColor" stroke-width="2"/></svg> Start Stream';
-          isStreaming = false;
-          
+          isStreaming = false;       
 
         // Show alert depending on result
           if (servicesStopped) {
@@ -1275,11 +1351,12 @@ const Dashboard = () => {
           setTimeout(() => document.body.removeChild(alertDiv), 500);
         }, 3000);
       }
-
+      
+    
     //Servo Control Script
     const SERVER = "http://100.68.107.103:8003";  //RPi backend URL
 
-    let servoRunning = false;  // Track state
+    let servoRunning = false;   // Track state
 
     const controlBtn = document.getElementById('servo-toggle-btn');
 
@@ -1301,9 +1378,6 @@ const Dashboard = () => {
           console.error('Error calling API:', error);
         });
     });
-
-    const panel = document.getElementById('servo-panel');
-    const angleDisplay = document.getElementById('angle-display');
 
     let verticalAngle = 90;
     let horizontalAngle = 90;
@@ -1358,7 +1432,7 @@ const Dashboard = () => {
         } else if (direction === 'center') {
           verticalAngle = 90;
           horizontalAngle = 90;
-          sendServoCommand('vertical', verticalAngle);
+          sendServoCommand('vertical', verticalAngle);  
           sendServoCommand('horizontal', horizontalAngle);
         }
 
@@ -1366,6 +1440,57 @@ const Dashboard = () => {
         highlightArrow(arrow);
       });
     });
+
+  document.addEventListener('keydown', (event) => {
+  if (!servoRunning) return;
+
+  let arrow = null;
+
+  switch (event.key) {
+    case 'ArrowUp':
+      verticalAngle = Math.max(minAngle, verticalAngle - step);
+      sendServoCommand('vertical', verticalAngle);
+      arrow = document.querySelector('.arrow.up');
+      break;
+
+    case 'ArrowDown':
+      verticalAngle = Math.min(maxAngle, verticalAngle + step);
+      sendServoCommand('vertical', verticalAngle);
+      arrow = document.querySelector('.arrow.down');
+      break;
+
+    case 'ArrowLeft':
+      horizontalAngle = Math.max(minAngle, horizontalAngle - step);
+      sendServoCommand('horizontal', horizontalAngle);
+      arrow = document.querySelector('.arrow.left');
+      break;
+
+    case 'ArrowRight':
+      horizontalAngle = Math.min(maxAngle, horizontalAngle + step);
+      sendServoCommand('horizontal', horizontalAngle);
+      arrow = document.querySelector('.arrow.right');
+      break;
+
+    case '0':
+    case 'c':
+    case 'C':
+      verticalAngle = 90;
+      horizontalAngle = 90;
+      sendServoCommand('vertical', verticalAngle);
+      sendServoCommand('horizontal', horizontalAngle);
+      arrow = document.querySelector('.arrow.center');
+      break;
+
+    default:
+      return; // Don't proceed if key not handled
+  }
+
+  event.preventDefault(); // Prevent page scrolling
+  updateAngleDisplay();
+
+  if (arrow) highlightArrow(arrow);
+});
+
 
     function sendServoCommand(axis, angle) {
       fetch(SERVER + "/servo?axis=" + axis + "&angle=" + angle)
@@ -1388,7 +1513,7 @@ const Dashboard = () => {
 
 </script>`;
     } else if (isPulse) {
-  popupHTML = `<!DOCTYPE html>
+      popupHTML = `<!DOCTYPE html>
 <html>
 <head>
   <title>${title}</title>
@@ -1680,7 +1805,7 @@ const Dashboard = () => {
   </script>
 </body>
 </html>`;
-} else if (device.name.includes("PC")) {
+    } else if (device.name.includes("PC")) {
       popupHTML = `<!DOCTYPE html>
 <html>
 <head>
@@ -2137,13 +2262,12 @@ const Dashboard = () => {
             <button
               className={`logout-button ${isDarkTheme ? "dark" : ""}`}
               onClick={() => {
-                userData.onLogout();     // Call logout
-                navigate('/auth');       // Redirect to /auth
+                userData.onLogout(); // Call logout
+                navigate("/auth"); // Redirect to /auth
               }}
             >
               Logout
             </button>
-
           </div>
         )}
       </div>
