@@ -567,6 +567,21 @@ const Dashboard = () => {
     height: 0;
     border-style: solid;
     cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease;
+  }
+
+/* Click effect (brief push-in animation) */
+/* Active class for keyboard-triggered highlight */
+.arrow.active {
+  transform: scale(0.95);
+  opacity: 1;
+  filter: brightness(1.4);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+  /* Click effect (brief push-in animation) */
+  .arrow:active {
+    transform: scale(0.9);
   }
 
   .arrow.up {
@@ -589,12 +604,23 @@ const Dashboard = () => {
     border-color: transparent transparent transparent #FF6A00;
   }
 
+  /* Center dot enhancements */
   .arrow.center {
     width: 20px;
     height: 20px;
     background-color: #FF6A00;
     border-radius: 50%;
     margin: auto;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+  }
+
+  .arrow.center:hover {
+    transform: scale(1.2);
+    background-color: #ffa347;
+  }
+
+  .arrow.center:active {
+    transform: scale(0.9);
   }
 
   .angle-display {
@@ -960,16 +986,18 @@ const Dashboard = () => {
 <script>
     document.addEventListener('DOMContentLoaded', () => {
       // API Endpoints
-      const startCameraAPI = "https://100.68.107.103:8000/start-camera";
-      const stopCameraAPI = "https://100.68.107.103:8000/stop-camera";
-      const startThermalAPI = "https://100.68.107.103:8000/start-thermal";
-      const stopThermalAPI = "https://100.68.107.103:8000/stop-thermal";
-      const cameraFeedAPI = "https://100.68.107.103:8001/camera.mjpg";
-      const thermalFeedAPI = "https://100.68.107.103:8002/thermal";
-      const cameraVerifiedAPI = "https://100.68.107.103:8001/camera_verified";
-      const thermalVerifiedAPI = "https://100.68.107.103:8002/thermal_verified";
-      const startServoAPI = "https://100.68.107.103:8000/start-servo";
-      const stopServoAPI = "https://100.68.107.103:8000/stop-servo";
+      const startCameraAPI = "http://100.68.107.103:8000/start-camera";
+      const stopCameraAPI = "http://100.68.107.103:8000/stop-camera";
+      const startThermalAPI = "http://100.68.107.103:8000/start-thermal";
+      const stopThermalAPI = "http://100.68.107.103:8000/stop-thermal";
+      const cameraFeedAPI = "http://100.68.107.103:8001/camera.mjpg";
+      const thermalFeedAPI = "http://100.68.107.103:8002/thermal";
+      const cameraVerifiedAPI = "http://100.68.107.103:8001/camera_verified";
+      const thermalVerifiedAPI = "http://100.68.107.103:8002/thermal_verified";
+      const startServoAPI = "http://100.68.107.103:8000/start-servo";
+      const stopServoAPI = "http://100.68.107.103:8000/stop-servo";
+      const panel = document.getElementById('servo-panel');
+      const angleDisplay = document.getElementById('angle-display');
 
       // DOM elements
       const cameraFeed = document.getElementById('camera-feed');
@@ -979,11 +1007,8 @@ const Dashboard = () => {
       const refreshBtn = document.getElementById('refresh-btn');
       const streamBtn = document.getElementById('stream-btn');
       const resetBtn = document.getElementById('reset-btn');
-      
       const toggleBtn = document.getElementById('servo-toggle-btn');
 
-      refreshBtn.disabled = true;
-      refreshBtn.style.backgroundColor = '#ff4444';
 
       // State variables
       let isCorsVerified = false;
@@ -993,6 +1018,10 @@ const Dashboard = () => {
       // Initialize UI
       streamBtn.style.backgroundColor = '#ff4444';
       streamBtn.disabled = false;
+
+      refreshBtn.disabled = true;
+      refreshBtn.style.backgroundColor = '#ff4444';
+
 
       toggleBtn.addEventListener('click', () => {
         panel.classList.toggle('hidden');
@@ -1092,12 +1121,39 @@ const Dashboard = () => {
             testConnection(cameraVerifiedAPI),
             testConnection(thermalVerifiedAPI)
           ]);
+
+      resetBtn.addEventListener('click', async () => {
+      resetBtn.disabled = true;
+      resetBtn.textContent = 'Resetting...';
+
+      try {
+        const [stopCameraRes, stopThermalRes] = await Promise.all([
+          fetch(stopCameraAPI, { method: 'GET' }),
+          fetch(stopThermalAPI, { method: 'GET' })
+        ]);
+
+        if (stopCameraRes.ok && stopThermalRes.ok) {
+          showAlert('success', 'Reset completed successfully.');
+          resetBtn.classList.add('hidden'); // Hide button after successful reset
+        } else {
+          showAlert('error', 'Reset failed. Please check server.');
+        }
+      } catch (error) {
+        console.error('Reset failed:', error);
+        showAlert('error', 'Reset failed due to network error.');
+      } finally {
+        resetBtn.disabled = false;
+        resetBtn.textContent = 'Reset';
+      }
+    });
           
-          if (!cameraReachable || !thermalReachable) {
-            throw new Error('Servers unreachable: Camera ' + (cameraReachable ? 'OK' : 'DOWN') + 
-                          ', Thermal ' + (thermalReachable ? 'OK' : 'DOWN'));
-          }
-          
+        // Show resetBtn only if either is unreachable
+        if (!cameraReachable || !thermalReachable) {
+          resetBtn.classList.remove('hidden'); // Show Reset button
+        } else {
+          resetBtn.classList.add('hidden'); // Hide Reset button
+        }
+  
           // Then verify endpoints
           const [cameraResponse, thermalResponse] = await Promise.all([
             fetch(cameraVerifiedAPI, { 
@@ -1236,13 +1292,13 @@ const Dashboard = () => {
           cameraFeed.innerHTML = '<div class="feed-Placeholder">Camera feed stopped</div>';
           thermalFeed.innerHTML = '<div class="feed-Placeholder">Thermal feed stopped</div>';
           streamBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M16 16v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4m4-4v16" fill="none" stroke="currentColor" stroke-width="2"/></svg> Start Stream';
-          isStreaming = false;
-          
+          isStreaming = false;       
+
         // Show alert depending on result
           if (servicesStopped) {
             showAlert('success', 'Stream stopped successfully');
           } else {
-            showAlert('success', 'Stream stopped.');
+            showAlert('warning', 'Stream stopped.');
           }
           
         } catch (error) {
@@ -1295,41 +1351,10 @@ const Dashboard = () => {
           setTimeout(() => document.body.removeChild(alertDiv), 500);
         }, 3000);
       }
-
-      if (!cameraReachable || !thermalReachable) {
-        resetBtn.classList.remove('hidden');  // Show Reset button
-        throw new Error('Servers unreachable: Camera ' + (cameraReachable ? 'OK' : 'DOWN') + 
-                      ', Thermal ' + (thermalReachable ? 'OK' : 'DOWN'));
-      }
-
-      resetBtn.addEventListener('click', async () => {
-      resetBtn.disabled = true;
-      resetBtn.textContent = 'Resetting...';
-
-      try {
-        const [stopCameraRes, stopThermalRes] = await Promise.all([
-          fetch(stopCameraAPI, { method: 'GET' }),
-          fetch(stopThermalAPI, { method: 'GET' })
-        ]);
-
-        if (stopCameraRes.ok && stopThermalRes.ok) {
-          showAlert('success', 'Reset completed successfully.');
-          resetBtn.classList.add('hidden'); // Hide button after successful reset
-        } else {
-          showAlert('error', 'Reset failed. Please check server.');
-        }
-      } catch (error) {
-        console.error('Reset failed:', error);
-        showAlert('error', 'Reset failed due to network error.');
-      } finally {
-        resetBtn.disabled = false;
-        resetBtn.textContent = 'Reset';
-      }
-    });
-
-
+      
+    
     //Servo Control Script
-    const SERVER = "https://100.68.107.103:8003";  //RPi backend URL
+    const SERVER = "http://100.68.107.103:8003";  //RPi backend URL
 
     let servoRunning = false;  // Track state
 
@@ -1353,9 +1378,6 @@ const Dashboard = () => {
           console.error('Error calling API:', error);
         });
     });
-
-    const panel = document.getElementById('servo-panel');
-    const angleDisplay = document.getElementById('angle-display');
 
     let verticalAngle = 90;
     let horizontalAngle = 90;
@@ -1410,7 +1432,7 @@ const Dashboard = () => {
         } else if (direction === 'center') {
           verticalAngle = 90;
           horizontalAngle = 90;
-          sendServoCommand('vertical', verticalAngle);
+          sendServoCommand('vertical', verticalAngle);  
           sendServoCommand('horizontal', horizontalAngle);
         }
 
@@ -1418,6 +1440,56 @@ const Dashboard = () => {
         highlightArrow(arrow);
       });
     });
+
+     document.addEventListener('keydown', (event) => {
+  if (!servoRunning) return;
+
+  let arrow = null;
+
+  switch (event.key) {
+    case 'ArrowUp':
+      verticalAngle = Math.max(minAngle, verticalAngle - step);
+      sendServoCommand('vertical', verticalAngle);
+      arrow = document.querySelector('.arrow.up');
+      break;
+
+    case 'ArrowDown':
+      verticalAngle = Math.min(maxAngle, verticalAngle + step);
+      sendServoCommand('vertical', verticalAngle);
+      arrow = document.querySelector('.arrow.down');
+      break;
+
+    case 'ArrowLeft':
+      horizontalAngle = Math.max(minAngle, horizontalAngle - step);
+      sendServoCommand('horizontal', horizontalAngle);
+      arrow = document.querySelector('.arrow.left');
+      break;
+
+    case 'ArrowRight':
+      horizontalAngle = Math.min(maxAngle, horizontalAngle + step);
+      sendServoCommand('horizontal', horizontalAngle);
+      arrow = document.querySelector('.arrow.right');
+      break;
+
+    case '0':
+    case 'c':
+    case 'C':
+      verticalAngle = 90;
+      horizontalAngle = 90;
+      sendServoCommand('vertical', verticalAngle);
+      sendServoCommand('horizontal', horizontalAngle);
+      arrow = document.querySelector('.arrow.center');
+      break;
+
+    default:
+      return; // Don't proceed if key not handled
+  }
+
+  event.preventDefault(); // Prevent page scrolling
+  updateAngleDisplay();
+
+  if (arrow) highlightArrow(arrow);
+});
 
     function sendServoCommand(axis, angle) {
       fetch(SERVER + "/servo?axis=" + axis + "&angle=" + angle)
