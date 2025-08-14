@@ -211,6 +211,32 @@ const Dashboard = () => {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
+  // Add this useEffect to check for expired bookings
+  useEffect(() => {
+    function checkExpiredBookings() {
+      const now = new Date();
+      setPopupWindows(prev => {
+        return prev.filter(popupInfo => {
+          // Close window if time expired
+          if (new Date(popupInfo.endTime) <= now) {
+            try {
+              if (!popupInfo.window.closed) {
+                popupInfo.window.close();
+              }
+            } catch (e) {
+              console.error("Error closing window:", e);
+            }
+            return false; // Remove from tracking
+          }
+          return true; // Keep tracking
+        });
+      });
+    }
+
+    const interval = setInterval(checkExpiredBookings, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const openDeviceWindow = async (deviceId, ipInfo = null) => {
     const device = selectedDevices.find((d) => d.id === deviceId);
     if (!device) {
@@ -986,16 +1012,16 @@ const Dashboard = () => {
 <script>
     document.addEventListener('DOMContentLoaded', () => {
       // API Endpoints
-      const startCameraAPI = "http://100.68.107.103:8000/start-camera";
-      const stopCameraAPI = "http://100.68.107.103:8000/stop-camera";
-      const startThermalAPI = "http://100.68.107.103:8000/start-thermal";
-      const stopThermalAPI = "http://100.68.107.103:8000/stop-thermal";
-      const cameraFeedAPI = "http://100.68.107.103:8001/camera.mjpg";
-      const thermalFeedAPI = "http://100.68.107.103:8002/thermal";
-      const cameraVerifiedAPI = "http://100.68.107.103:8001/camera_verified";
-      const thermalVerifiedAPI = "http://100.68.107.103:8002/thermal_verified";
-      const startServoAPI = "http://100.68.107.103:8000/start-servo";
-      const stopServoAPI = "http://100.68.107.103:8000/stop-servo";
+      const startCameraAPI = "http://100.124.235.42:8000/start-camera";
+      const stopCameraAPI = "http://100.124.235.42:8000/stop-camera";
+      const startThermalAPI = "http://100.124.235.42:8000/start-thermal";
+      const stopThermalAPI = "http://100.124.235.42:8000/stop-thermal";
+      const cameraFeedAPI = "http://100.124.235.42:8001/camera.mjpg";
+      const thermalFeedAPI = "http://100.124.235.42:8002/thermal";
+      const cameraVerifiedAPI = "http://100.124.235.42:8001/camera_verified";
+      const thermalVerifiedAPI = "http://100.124.235.42:8002/thermal_verified";
+      const startServoAPI = "http://100.124.235.42:8000/start-servo";
+      const stopServoAPI = "http://100.124.235.42:8000/stop-servo";
       const panel = document.getElementById('servo-panel');
       const angleDisplay = document.getElementById('angle-display');
 
@@ -1364,7 +1390,7 @@ resetBtn.addEventListener('click', async () => {
       
     
     //Servo Control Script
-    const SERVER = "http://100.68.107.103:8003";  //RPi backend URL
+    const SERVER = "http://100.124.235.42:8003";  //RPi backend URL
 
     let servoRunning = false;  // Track state
 
@@ -2501,6 +2527,13 @@ resetBtn.addEventListener('click', async () => {
       `device_${deviceId}`,
       "width=1000,height=700,left=100,top=100,resizable=yes"
     );
+
+    //tracked windows
+    setPopupWindows(prev => [...prev, {
+      id: deviceId,
+      window: popup,
+      endTime: deviceEndTime
+    }]);
 
     if (!popup) {
       URL.revokeObjectURL(url);

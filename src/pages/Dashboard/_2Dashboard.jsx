@@ -91,7 +91,7 @@ const Dashboard = () => {
     ct1_ip: { name: "CT1", iconType: "ThermoCamIcon" },
     ct2_ip: { name: "CT2", iconType: "ThermoCamIcon" },
     ct3_ip: { name: "CT3", iconType: "ThermoCamIcon" },
-    pc_ip: { name: "PC", iconType: "MonitorSmartphone" },
+    pc_ip: { name: "Virtual Desk", iconType: "MonitorSmartphone" },
     pulse1_ip: { name: "Pulse1", iconType: "ChartColumnStacked" },
     pulse2_ip: { name: "Pulse2", iconType: "ChartColumnStacked" },
     pulse3_ip: { name: "Pulse3", iconType: "ChartColumnStacked" },
@@ -317,7 +317,7 @@ const Dashboard = () => {
     const isPulse = ["Pulse1", "Pulse2", "Pulse3"].some((pulse) =>
       device.name.includes(pulse)
     );
-    const isPC = device.name.includes("PC");
+    const isPC = device.name.includes("Virtual");
 
     // Timer script that will receive updates from parent window
     const timerScript = `
@@ -1122,19 +1122,28 @@ const Dashboard = () => {
             testConnection(thermalVerifiedAPI)
           ]);
 
-      resetBtn.addEventListener('click', async () => {
-      resetBtn.disabled = true;
-      resetBtn.textContent = 'Resetting...';
+resetBtn.addEventListener('click', async () => {
+  resetBtn.disabled = true;
+  resetBtn.textContent = 'Resetting...';
 
-      try {
-        const [stopCameraRes, stopThermalRes] = await Promise.all([
-          fetch(stopCameraAPI, { method: 'GET' }),
-          fetch(stopThermalAPI, { method: 'GET' })
-        ]);
+  try {
+    const [stopCameraRes, stopThermalRes] = await Promise.all([
+      fetch(stopCameraAPI, { method: 'GET' }),
+      fetch(stopThermalAPI, { method: 'GET' })
+    ]);
 
         if (stopCameraRes.ok && stopThermalRes.ok) {
           showAlert('success', 'Reset completed successfully.');
           resetBtn.classList.add('hidden'); // Hide button after successful reset
+          
+          // Reset the stream button to initial state
+          resetStreamButton();
+          
+          // Also reset verification state
+          isCorsVerified = false;
+          refreshBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/></svg>';
+          refreshBtn.disabled = false;
+          streamBtn.style.backgroundColor = '#ff4444';
         } else {
           showAlert('error', 'Reset failed. Please check server.');
         }
@@ -1329,6 +1338,7 @@ const Dashboard = () => {
         streamBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M16 16v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4m4-4v16" fill="none" stroke="currentColor" stroke-width="2"/></svg> Start Stream';
         streamBtn.style.backgroundColor = '#ff4444';
         isFirstClick = true;
+        isStreaming = false;
       }
 
       function showAlert(type, message) {
@@ -1618,12 +1628,16 @@ const Dashboard = () => {
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      position: relative;
     }
     
     .pulse-viewer-header {
       padding: 8px 12px;
       background: rgba(0,0,0,0.3);
       font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     
     .pulse-viewer-content {
@@ -1643,6 +1657,36 @@ const Dashboard = () => {
       width: 100%;
       height: 100%;
       border: none;
+    }
+    
+    .viewer-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .viewer-action-btn {
+      background: transparent;
+      border: none;
+      color: #BBBBBB;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .viewer-action-btn:hover {
+      color: #FFFFFF;
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .fullscreen-icon {
+      width: 16px;
+      height: 16px;
     }
     
     @keyframes spin {
@@ -1680,6 +1724,23 @@ const Dashboard = () => {
       opacity: 0;
       transition: opacity 0.5s;
     }
+    
+    /* Fullscreen styles */
+    .pulse-viewer-container.fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 9999;
+      border-radius: 0;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .pulse-viewer-container.fullscreen .pulse-viewer-content {
+      height: calc(100% - 36px); /* Account for header height */
+    }
   </style>
 </head>
 <body>
@@ -1688,7 +1749,7 @@ const Dashboard = () => {
       <div class="device-info">
         <div class="device-name-row">
           <div class="device-name">${device.name}</div>
-          <div id="device-timer"></div>
+          <div id="device-timer">--:--:--</div>
         </div>
       </div>
       <div class="controls">
@@ -1702,9 +1763,17 @@ const Dashboard = () => {
     </div>
  
     <div class="pulse-content">
-      <div class="pulse-viewer-container">
+      <div class="pulse-viewer-container" id="pulse-viewer-container">
         <div class="pulse-viewer-header">
           <span>PulseView</span>
+          <div class="viewer-actions">
+            <button class="viewer-action-btn" id="fullscreen-btn" title="Toggle fullscreen">
+              <svg class="fullscreen-icon" viewBox="0 0 24 24" id="fullscreen-icon">
+                <path d="M7 7h4V5H5v6h2V7zm10 0h-4V5h6v6h-2V7zm-10 10h4v2H5v-6h2v4zm10 0h-4v2h6v-6h-2v4z" 
+                      stroke="currentColor" fill="none" stroke-width="1.5"/>
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="pulse-viewer-content">
           <div class="pulse-viewer-placeholder" id="pulse-viewer-feed">PulseView not launched</div>
@@ -1723,6 +1792,9 @@ const Dashboard = () => {
       const launchBtn = document.getElementById('launch-btn');
       const pulseViewerFeed = document.getElementById('pulse-viewer-feed');
       const pulseViewerIframe = document.getElementById('pulse-viewer-iframe');
+      const fullscreenBtn = document.getElementById('fullscreen-btn');
+      const fullscreenIcon = document.getElementById('fullscreen-icon');
+      const pulseViewerContainer = document.getElementById('pulse-viewer-container');
       const ipAddress = "${ipAddress}";
  
       function showAlert(type, message) {
@@ -1739,7 +1811,34 @@ const Dashboard = () => {
           setTimeout(() => document.body.removeChild(alertDiv), 500);
         }, 3000);
       }
- 
+      
+      // Fullscreen functionality
+      function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          pulseViewerContainer.requestFullscreen().catch(err => {
+            console.error('Error attempting to enable fullscreen:', err);
+            showAlert('error', 'Fullscreen failed: ' + err.message);
+          });
+        } else {
+          document.exitFullscreen();
+        }
+      }
+      
+      // Update fullscreen button icon based on state
+      function updateFullscreenButton() {
+        if (document.fullscreenElement) {
+          fullscreenIcon.innerHTML = '<path d="M5 16h4v4h2v-6H5v2zm10-10h-4V2h-2v6h6V6zm-10 8h4v4h2v-6H5v2zm10-8h-4V2h-2v6h6V6z" stroke="currentColor" fill="none" stroke-width="1.5"/>';
+          fullscreenBtn.setAttribute('title', 'Exit fullscreen');
+        } else {
+          fullscreenIcon.innerHTML = '<path d="M7 7h4V5H5v6h2V7zm10 0h-4V5h6v6h-2V7zm-10 10h4v2H5v-6h2v4zm10 0h-4v2h6v-6h-2v4z" stroke="currentColor" fill="none" stroke-width="1.5"/>';
+          fullscreenBtn.setAttribute('title', 'Enter fullscreen');
+        }
+      }
+      
+      // Event listeners for fullscreen changes
+      document.addEventListener('fullscreenchange', updateFullscreenButton);
+      fullscreenBtn.addEventListener('click', toggleFullscreen);
+
       // Launch PulseView control
       launchBtn.addEventListener('click', async () => {
         if (launchBtn.textContent.includes('Launch')) {
@@ -1804,7 +1903,7 @@ const Dashboard = () => {
   </script>
 </body>
 </html>`;
-    } else if (device.name.includes("PC")) {
+    } else if (device.name.includes("Virtual")) {
       popupHTML = `<!DOCTYPE html>
 <html>
 <head>
@@ -1821,7 +1920,7 @@ const Dashboard = () => {
       height: 100vh;
       overflow: hidden;
     }
-    
+   
     .pc-container {
       display: flex;
       flex-direction: column;
@@ -1832,7 +1931,7 @@ const Dashboard = () => {
       max-width: 2000px;
       margin: 0 auto;
     }
-    
+   
     .header {
       display: flex;
       justify-content: space-between;
@@ -1842,12 +1941,12 @@ const Dashboard = () => {
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
-    
+   
     .controls {
       display: flex;
       gap: 12px;
     }
-    
+   
     .control-btn {
       background: #2A2A2A;
       border: none;
@@ -1861,10 +1960,12 @@ const Dashboard = () => {
       transition: all 0.2s;
     }
 
+
     .device-info {
       display: flex;
       flex-direction: column;
     }
+
 
      .device-name-row {
       display: flex;
@@ -1872,9 +1973,11 @@ const Dashboard = () => {
       align-items: center;
     }
 
+
     #device-timer {
       margin-left: 10px;
     }
+
 
     .device-name {
       font-size: 18px;
@@ -1887,22 +1990,22 @@ const Dashboard = () => {
       line-height: 1.2;
       text-align: center;
     }
-    
+   
     .control-btn:hover {
       background: #FF6A00;
     }
-    
+   
     .control-btn.active {
       background: #FF6A00;
     }
-    
+   
     .pc-content {
       flex: 1;
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
-    
+   
     .remote-desktop-container {
       flex: 1;
       background: #1E1E1E;
@@ -1911,14 +2014,15 @@ const Dashboard = () => {
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      position: relative;
     }
-    
+   
     .remote-desktop-header {
       padding: 8px 12px;
       background: rgba(0,0,0,0.3);
       font-size: 14px;
     }
-    
+   
     .remote-desktop-content {
       flex: 1;
       display: flex;
@@ -1926,18 +2030,18 @@ const Dashboard = () => {
       justify-content: center;
       position: relative;
     }
-    
+   
     .remote-desktop-placeholder {
       color: #BBBBBB;
       font-size: 16px;
     }
-    
+   
     .remote-desktop-iframe {
       width: 100%;
       height: 100%;
       border: none;
     }
-    
+   
     .remote-desktop-controls {
       position: absolute;
       bottom: 16px;
@@ -1947,7 +2051,7 @@ const Dashboard = () => {
       justify-content: center;
       gap: 8px;
     }
-    
+   
     .remote-desktop-btn {
       background: rgba(0,0,0,0.7);
       border: none;
@@ -1961,36 +2065,90 @@ const Dashboard = () => {
       cursor: pointer;
       transition: all 0.2s;
     }
-    
+   
     .remote-desktop-btn:hover {
       background: #FF6A00;
       transform: scale(1.1);
     }
-    
+
+
+    /* Fullscreen button styling */
+    .fullscreen-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(0,0,0,0.7);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      z-index: 1000;
+    }
+
+
+    .fullscreen-btn:hover {
+      background: #FF6A00;
+    }
+
+
+    .fullscreen-btn.show {
+      display: flex;
+    }
+
+
+    /* Fullscreen styles */
+    .remote-desktop-container.fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 9999;
+      border-radius: 0;
+    }
+
+
+    .remote-desktop-container.fullscreen .remote-desktop-header {
+      display: none;
+    }
+
+
+    /* Spinning animation for loading */
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+   
     .pc-info {
       background: #1E1E1E;
       border-radius: 8px;
       padding: 16px;
     }
-    
+   
     .pc-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 12px;
     }
-    
+   
     .pc-box {
       background: #2A2A2A;
       padding: 12px;
       border-radius: 8px;
     }
-    
+   
     .pc-label {
       font-size: 12px;
       color: #BBBBBB;
       margin-bottom: 4px;
     }
-    
+   
     .pc-value {
       font-size: 14px;
       font-weight: bold;
@@ -2013,23 +2171,25 @@ const Dashboard = () => {
           </svg>
           Connect
         </button>
-        <!--<button class="control-btn" id="fullscreen-btn">
-          <svg viewBox="0 0 24 24" width="16" height="16">
-            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          Fullscreen
-        </button> -->
       </div>
     </div>
 
+
     <div class="pc-content">
-      <div class="remote-desktop-container">
+      <div class="remote-desktop-container" id="remote-desktop-container">
+        <!-- Fullscreen button -->
+        <button class="fullscreen-btn" id="fullscreen-btn">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+       
         <div class="remote-desktop-header">
           <span>Remote Desktop</span>
         </div>
         <div class="remote-desktop-content">
           <div class="remote-desktop-placeholder" id="remote-desktop-feed">Not connected</div>
-          <iframe 
+          <iframe
             id="remote-desktop-iframe"
             class="remote-desktop-iframe"
             allow="fullscreen"
@@ -2037,88 +2197,271 @@ const Dashboard = () => {
           ></iframe>
         </div>
       </div>
-
-      <!--<div class="pc-info">
-        <div class="pc-grid">
-          <div class="pc-box">
-            <div class="pc-label">IP Address</div>
-            <div class="pc-value">${ipAddress}</div>
-          </div>
-          <div class="pc-box">
-            <div class="pc-label">Connection Type</div>
-            <div class="pc-value">Remote Desktop</div>
-          </div>
-          <div class="pc-box">
-            <div class="pc-label">Status</div>
-            <div class="pc-value" id="status-value">Disconnected</div>
-          </div>
-          <div class="pc-box">
-            <div class="pc-label">Last Connected</div>
-            <div class="pc-value" id="last-connected">Never</div>
-          </div>
-        </div>
-      </div>-->
     </div>
   </div>
+
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const connectBtn = document.getElementById('connect-btn');
       const remoteDesktopFeed = document.getElementById('remote-desktop-feed');
       const remoteDesktopIframe = document.getElementById('remote-desktop-iframe');
-      const statusValue = document.getElementById('status-value');
-      const lastConnected = document.getElementById('last-connected');
+      const remoteDesktopContainer = document.getElementById('remote-desktop-container');
       const fullscreenBtn = document.getElementById('fullscreen-btn');
-      
-      // Connect control
-      connectBtn.addEventListener('click', () => {
-        if (connectBtn.textContent.includes('Connect')) {
+      let isConnected = false;
+     
+      // Connect/Disconnect control
+      connectBtn.addEventListener('click', async () => {
+        if (!isConnected) {
+          // Connect
           // Show loading state
           remoteDesktopFeed.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">' +
             '<div style="border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid #FF6A00; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>' +
             '<p style="margin-top: 10px;">Connecting to ${ipAddress}...</p>' +
             '</div>';
-          
-          // Set up the iframe with the actual streaming URL
-          remoteDesktopIframe.src = 'http://${ipAddress}/';
-          remoteDesktopIframe.onload = () => {
-            remoteDesktopFeed.style.display = 'none';
-            remoteDesktopIframe.style.display = 'block';
-            connectBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Disconnect';
-            connectBtn.classList.add('active');
-            statusValue.textContent = 'Connected';
-            lastConnected.textContent = new Date().toLocaleString();
-          };
-          
-          remoteDesktopIframe.onerror = () => {
-            remoteDesktopFeed.innerHTML = '<div style="color: #ff4d4d;">Connection failed. Please check the IP address and try again.</div>';
-          };
+         
+          remoteDesktopFeed.style.display = 'block';
+
+
+          try {
+            const data = await testConnection('http://${ipAddress}:8000/start_stream')
+            const data1 = await testConnection1('http://${ipAddress}:5000/start_stream')
+            if (data.status === 'already running' || data.status === 'started') {
+              remoteDesktopFeed.innerHTML = "<img id='remoteDesktopImg' src='http://${ipAddress}:9000/stream?advance_headers=1&dual_final_frames=1' style='width: 100%; height: 100%; object-fit: contain;' />";
+             
+              // Update button to disconnect
+              connectBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Disconnect';
+              connectBtn.classList.add('active');
+              isConnected = true;
+             
+              // Show fullscreen button
+              fullscreenBtn.classList.add('show');
+             
+              setupMouseAndKeyboard();
+            } else {
+              throw new Error('Stream failed to start');
+            }
+          } catch (error) {
+            console.error(error.message);
+            remoteDesktopFeed.innerHTML = '<div class="remote-desktop-placeholder">Connection failed</div>';
+          }
         } else {
           // Disconnect
-          remoteDesktopIframe.src = '';
-          remoteDesktopIframe.style.display = 'none';
-          remoteDesktopFeed.style.display = 'block';
-          remoteDesktopFeed.innerHTML = '<div class="remote-desktop-placeholder">Not connected</div>';
-          connectBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Connect';
-          connectBtn.classList.remove('active');
-          statusValue.textContent = 'Disconnected';
+          await disconnect();
         }
       });
 
+
       // Fullscreen control
-      fullscreenBtn.addEventListener('click', () => {
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen();
-        } else {
-          if (document.exitFullscreen) {
-            document.exitFullscreen();
-          }
+      fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+
+      // ESC key to exit fullscreen
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && remoteDesktopContainer.classList.contains('fullscreen')) {
+          exitFullscreen();
         }
       });
+
+
+      // Fullscreen change event
+      document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement) {
+          remoteDesktopContainer.classList.remove('fullscreen');
+          updateFullscreenButton(false);
+        }
+      });
+
+
+      async function disconnect() {
+       
+        // Reset UI
+        remoteDesktopIframe.src = '';
+        remoteDesktopIframe.style.display = 'none';
+        remoteDesktopFeed.style.display = 'block';
+        remoteDesktopFeed.innerHTML = '<div class="remote-desktop-placeholder">Not connected</div>';
+        connectBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Connect';
+        connectBtn.classList.remove('active');
+        isConnected = false;
+       
+        // Hide fullscreen button
+        fullscreenBtn.classList.remove('show');
+       
+        // Exit fullscreen if active
+        if (remoteDesktopContainer.classList.contains('fullscreen')) {
+          exitFullscreen();
+        }
+      }
+
+
+      function toggleFullscreen() {
+        if (remoteDesktopContainer.classList.contains('fullscreen')) {
+          exitFullscreen();
+        } else {
+          enterFullscreen();
+        }
+      }
+
+
+      function enterFullscreen() {
+        remoteDesktopContainer.classList.add('fullscreen');
+        remoteDesktopContainer.requestFullscreen().catch(err => {
+          console.error('Error entering fullscreen:', err);
+        });
+        updateFullscreenButton(true);
+      }
+
+
+      function exitFullscreen() {
+        remoteDesktopContainer.classList.remove('fullscreen');
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(err => {
+            console.error('Error exiting fullscreen:', err);
+          });
+        }
+        updateFullscreenButton(false);
+      }
+
+
+      function updateFullscreenButton(isFullscreen) {
+        if (isFullscreen) {
+          fullscreenBtn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+        } else {
+          fullscreenBtn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+        }
+      }
+
+
+      function setupMouseAndKeyboard() {
+        const video = document.getElementById("remoteDesktopImg");
+
+
+        video.addEventListener("click", () => {
+          console.log('clicked');
+          video.requestPointerLock = video.requestPointerLock || video.mozRequestPointerLock || video.webkitRequestPointerLock;
+          video.requestPointerLock();
+        });
+
+
+        document.addEventListener("keydown", function (e) {
+          if (document.pointerLockElement === video) {
+            const jsCodes = [];
+            if (e.ctrlKey) jsCodes.push(17);
+            if (e.shiftKey) jsCodes.push(16);
+            if (e.altKey) jsCodes.push(18);
+            if (e.metaKey || e.key === "Meta") jsCodes.push(91);
+            const isModifier = [16, 17, 18, 91].includes(e.keyCode);
+            if (!isModifier) jsCodes.push(e.keyCode);
+
+
+            fetch("http://${ipAddress}:5000/keyboard", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ keycodes: jsCodes })
+            });
+
+
+            e.preventDefault();
+          }
+        });
+
+
+        function smoothMouseDelta(dx, dy, threshold = 1) {
+          dx = Math.abs(dx) >= threshold ? dx : 0;
+          dy = Math.abs(dy) >= threshold ? dy : 0;
+          return [dx, dy];
+        }
+
+
+        document.addEventListener("mousemove", (e) => {
+          if (document.pointerLockElement === video) {
+            let [dx, dy] = smoothMouseDelta(e.movementX, e.movementY);
+            fetch("http://${ipAddress}:5000/mouse", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ x: dx, y: dy, buttons: e.buttons, wheel: 0 })
+            });
+          }
+        });
+
+
+        document.addEventListener("mousedown", (e) => {
+          if (document.pointerLockElement === video) {
+            fetch("http://${ipAddress}:5000/mouse", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ x: 0, y: 0, buttons: (1 << e.button), wheel: 0 })
+            });
+          }
+        });
+
+
+        document.addEventListener("mouseup", (e) => {
+          if (document.pointerLockElement === video) {
+            fetch("http://${ipAddress}:5000/mouse", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ x: 0, y: 0, buttons: 0, wheel: 0 })
+            });
+          }
+        });
+
+
+        document.addEventListener("wheel", (e) => {
+          if (document.pointerLockElement === video) {
+            fetch("http://${ipAddress}:5000/mouse", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ x: 0, y: 0, buttons: 0, wheel: e.deltaY > 0 ? 0xFF : 0x01 })
+            });
+          }
+        });
+      }
+
+
+      async function testConnection(url) {
+        try {
+          const response = await fetch(url, {
+            method: 'POST',
+            cache: 'no-store'
+          });
+          const data = await response.json();
+          console.log('Parsed data:', data);
+          return data;
+        } catch (error) {
+          console.error('Connection failed for ' + url + ':', error);
+          return {
+            ok: false,
+            status: 0,
+            statusText: error.message
+          };
+        }
+      }
+
+
+      async function testConnection1(url) {
+        try {
+          const response = await fetch(url, {
+            method: 'GET',
+            cache: 'no-store'
+          });
+          const data = await response.json();
+          console.log('Parsed data:', data);
+          return data;
+        } catch (error) {
+          console.error('Connection failed for ' + url + ':', error);
+          return {
+            ok: false,
+            status: 0,
+            statusText: error.message
+          };
+        }
+      }
     });
   </script>
 </body>
 </html>`;
+
     } else {
       popupHTML = `<!DOCTYPE html>
 <html>

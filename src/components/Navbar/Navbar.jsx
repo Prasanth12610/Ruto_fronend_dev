@@ -18,6 +18,10 @@ const Navbar = ({ isDarkTheme, toggleTheme, userData }) => {
     expired: false
   });
 
+    // Extract both device_id and reservation_id from userData
+  const deviceId = userData?.device_id;
+  const reservationId = userData?.reservation_id ? Number(userData.reservation_id) : null;
+
   // Navigate back to reservations 
   const handleBackToReservations = () => {
     window.location.href = "http://127.0.0.1:5000/reservations";
@@ -28,7 +32,12 @@ const Navbar = ({ isDarkTheme, toggleTheme, userData }) => {
     window.location.href = "http://127.0.0.1:5000/reservations";
   };
 
-  const fetchDeviceData = async (deviceId) => {
+  const parseAPIDate = (dateString) => {
+    // Convert API date string (with timezone) to local Date object
+    return new Date(dateString);
+  };
+
+  const fetchDeviceData = async (deviceId, reservationId) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -40,17 +49,33 @@ const Navbar = ({ isDarkTheme, toggleTheme, userData }) => {
       const response = await axios.get('http://127.0.0.1:5000/api/booked-devices');
       
       if (response.data && Array.isArray(response.data.booked_devices)) {
-        const device = response.data.booked_devices.find(d => 
-          d.device_id === deviceId
-        );
+        // First try to find exact match with both device_id and reservation_id
+        if (reservationId) {
+          const exactMatch = response.data.booked_devices.find(d => 
+            d.device_id === deviceId && d.reservation_id === reservationId
+          );
+          
+          if (exactMatch) {
+            return {
+              name: exactMatch.device_name,
+              endTime: new Date(exactMatch.end_time)
+            };
+          }
+        }
+
+        // If no exact match or no reservationId, find most recent booking for this device
+        const deviceBookings = response.data.booked_devices
+          .filter(d => d.device_id === deviceId)
+          .sort((a, b) => new Date(b.end_time) - new Date(a.end_time));
         
-        if (device) {
+        if (deviceBookings.length > 0) {
           return {
-            name: device.device_name,
-            endTime: new Date(device.end_time)
+            name: deviceBookings[0].device_name,
+            endTime: new Date(deviceBookings[0].end_time)
           };
         }
       }
+
       throw new Error('Booked device not found');
     } catch (error) {
       console.error('Device data fetch error:', error);
@@ -140,7 +165,7 @@ const Navbar = ({ isDarkTheme, toggleTheme, userData }) => {
     }
 
     const initializeTimer = async () => {
-      const deviceData = await fetchDeviceData(userData.device_id);
+      const deviceData = await fetchDeviceData(userData.device_id, reservationId);
       if (deviceData) {
         setDeviceName(deviceData.name);
         startCountdown(deviceData.endTime, deviceData.name);
@@ -156,7 +181,7 @@ const Navbar = ({ isDarkTheme, toggleTheme, userData }) => {
       clearInterval(timerRef.current);
       clearInterval(refreshInterval);
     };
-  }, [userData?.device_id]);
+  }, [userData?.device_id, reservationId]);
 
   return (
     <div className={`navbar-container ${isDarkTheme ? "dark" : ""}`}>
@@ -181,12 +206,12 @@ const Navbar = ({ isDarkTheme, toggleTheme, userData }) => {
           ) : error ? (
             <div className="timer-error">{error}</div>
           ) : timeLeft ? (
-            <div className={`device-timer `}>
+            <div className={`device-timer`}>
               <span className="Device-name" title={deviceName}>
                 {deviceName.length > 12 ? `${deviceName.substring(0, 10)}...` : deviceName} -
               </span>
-               <span className={`timer ${isLast10Minutes ? 'last-10-minutes' : ''}`}> 
-                <TimerIcon size={20} style={{ marginRight: '4px'}} /> {timeLeft} 
+              <span className={`timer ${isLast10Minutes ? 'last-10-minutes' : ''}`}>
+                <TimerIcon size={20} style={{ marginRight: '4px'}} /> {timeLeft}
               </span>
             </div>
           ) : (
