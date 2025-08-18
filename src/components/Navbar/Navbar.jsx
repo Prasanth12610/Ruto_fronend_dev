@@ -1,13 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import rutomatrixLogo from "../../assets/images/rutomatrix.png";
 import tessolveLogo from "../../assets/images/tessolve.png";
 import "./Navbar.css";
-import { ChevronLeft, TimerIcon } from 'lucide-react'; 
+import { ChevronLeft, TimerIcon } from "lucide-react";
 
 const Navbar = ({ isDarkTheme, toggleTheme, userData }) => {
   const [timeLeft, setTimeLeft] = useState(null);
-  const [deviceName, setDeviceName] = useState('');
+  const [deviceName, setDeviceName] = useState("");
+  const [ipType, setIpType] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isLast10Minutes, setIsLast10Minutes] = useState(false);
@@ -15,14 +16,10 @@ const Navbar = ({ isDarkTheme, toggleTheme, userData }) => {
   const alertShownRef = useRef({
     thirtyMinutes: false,
     tenMinutes: false,
-    expired: false
+    expired: false,
   });
 
-    // Extract both device_id and reservation_id from userData
-  const deviceId = userData?.device_id;
-  const reservationId = userData?.reservation_id ? Number(userData.reservation_id) : null;
-
-  // Navigate back to reservations 
+  // Navigate back to reservations
   const handleBackToReservations = () => {
     window.location.href = "http://127.0.0.1:5000/reservations";
   };
@@ -32,53 +29,59 @@ const Navbar = ({ isDarkTheme, toggleTheme, userData }) => {
     window.location.href = "http://127.0.0.1:5000/reservations";
   };
 
-  const parseAPIDate = (dateString) => {
-    // Convert API date string (with timezone) to local Date object
-    return new Date(dateString);
-  };
-
-  const fetchDeviceData = async (deviceId, reservationId) => {
+  const fetchDeviceData = async (deviceId, currentIpType) => {
     try {
       setIsLoading(true);
       setError(null);
-      
-      if (!deviceId) {
-        throw new Error('No device ID provided');
-      }
 
       const response = await axios.get('http://127.0.0.1:5000/api/booked-devices');
       
-      if (response.data && Array.isArray(response.data.booked_devices)) {
-        // First try to find exact match with both device_id and reservation_id
-        if (reservationId) {
-          const exactMatch = response.data.booked_devices.find(d => 
-            d.device_id === deviceId && d.reservation_id === reservationId
-          );
-          
-          if (exactMatch) {
-            return {
-              name: exactMatch.device_name,
-              endTime: new Date(exactMatch.end_time)
-            };
-          }
-        }
+      if (response.data?.booked_devices) {
+        // Find all ACTIVE bookings for this device
+        const activeBookings = response.data.booked_devices.filter(
+          d => d.device_id === deviceId && d.status === 'active'
+        );
 
-        // If no exact match or no reservationId, find most recent booking for this device
-        const deviceBookings = response.data.booked_devices
-          .filter(d => d.device_id === deviceId)
-          .sort((a, b) => new Date(b.end_time) - new Date(a.end_time));
-        
-        if (deviceBookings.length > 0) {
+      if (!currentIpType && activeBookings.length > 0) {
+        // Try to match the current open device/tab
+        const matchingBooking = activeBookings.find(b => {
+          const ips = b.ip_type.split(",").map(ip => ip.trim());
+          return ips.some(ip => window.location.href.includes(ip)); // or match with context
+        });
+
+        if (matchingBooking) {
+          currentIpType = matchingBooking.ip_type;
+          console.warn("Using matched booking's IP type:", currentIpType);
+        } else {
+          // fallback to the first one if no match
+          currentIpType = activeBookings[0].ip_type;
+          console.warn("Fallback to first active booking's IP type:", currentIpType);
+        }
+      }
+
+        // Find the booking that matches the specific IP type
+        const device = activeBookings.find(d => {
+          if (!currentIpType) return false;
+          
+          const bookingIps = d.ip_type?.split(',').map(ip => ip.trim()) || [];
+          const userIps = currentIpType.split(',').map(ip => ip.trim());
+
+          // Check if any of the user's IPs match the booking's IPs
+          return userIps.some(ip => bookingIps.includes(ip));
+        });
+
+        if (device) {
           return {
-            name: deviceBookings[0].device_name,
-            endTime: new Date(deviceBookings[0].end_time)
+            name: device.device_name,
+            endTime: new Date(device.end_time),
+            ipType: device.ip_type
           };
         }
       }
 
-      throw new Error('Booked device not found');
+      throw new Error('No active booking found for this device and IP combination');
     } catch (error) {
-      console.error('Device data fetch error:', error);
+      console.error("fetchDeviceData error:", error);
       setError(error.message);
       return null;
     } finally {
@@ -88,11 +91,13 @@ const Navbar = ({ isDarkTheme, toggleTheme, userData }) => {
 
   const playAlertSound = () => {
     try {
-      const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3');
+      const audio = new Audio(
+        "https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3"
+      );
       audio.volume = 0.3;
-      audio.play().catch(e => console.log('Audio play failed:', e));
+      audio.play().catch((e) => console.log("Audio play failed:", e));
     } catch (e) {
-      console.log('Audio error:', e);
+      console.log("Audio error:", e);
     }
   };
 
@@ -108,7 +113,7 @@ const Navbar = ({ isDarkTheme, toggleTheme, userData }) => {
     });
   };
 
-  const startCountdown = (endTime, deviceName) => {
+    const startCountdown = (endTime, deviceName, ipType) => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
@@ -118,7 +123,7 @@ const Navbar = ({ isDarkTheme, toggleTheme, userData }) => {
       thirtyMinutes: false,
       tenMinutes: false,
       expired: false,
-      isAlertActive: false
+      isAlertActive: false,
     };
     setIsLast10Minutes(false);
 
@@ -131,7 +136,11 @@ const Navbar = ({ isDarkTheme, toggleTheme, userData }) => {
       const minutes = Math.floor((difference / (1000 * 60)) % 60);
       const seconds = Math.floor((difference / 1000) % 60);
 
-      setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+      setTimeLeft(
+        `${hours.toString().padStart(2, "0")}:${minutes
+          .toString()
+          .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+      );
 
       // Update last 10 minutes state for styling
       if (minutesLeft <= 10 && !isLast10Minutes) {
@@ -140,48 +149,55 @@ const Navbar = ({ isDarkTheme, toggleTheme, userData }) => {
 
       if (difference <= 0) {
         clearInterval(timerRef.current);
-        setTimeLeft('00:00:00');
+        setTimeLeft("00:00:00");
         if (!alertShownRef.current.expired) {
-          await showAlert(`Your booking for ${deviceName} has expired!`);
+          await showAlert(`Your booking for ${deviceName} (${ipType}) has expired!`);
           alertShownRef.current.expired = true;
-          // Navigate to reservations after showing alert
           setTimeout(navigateToReservations, 1000);
         }
       } else if (minutesLeft === 10 && !alertShownRef.current.tenMinutes) {
-        await showAlert(`Warning: Only 10 minutes left for ${deviceName}`);
+        await showAlert(`Warning: Only 10 minutes left for ${deviceName} (${ipType})`);
         alertShownRef.current.tenMinutes = true;
       } else if (minutesLeft === 30 && !alertShownRef.current.thirtyMinutes) {
-        await showAlert(`Warning: Only 30 minutes left for ${deviceName}`);
+        await showAlert(`Warning: Only 30 minutes left for ${deviceName} (${ipType})`);
         alertShownRef.current.thirtyMinutes = true;
       }
     }, 1000);
   };
 
   useEffect(() => {
+    console.log("Current userData:", userData);
+    
     if (!userData?.device_id) {
-      setError('No device selected');
+      setError("No device selected");
       setIsLoading(false);
       return;
     }
 
     const initializeTimer = async () => {
-      const deviceData = await fetchDeviceData(userData.device_id, reservationId);
+      // Get current IP type from userData (check multiple possible property names)
+      const currentIpType = userData.ip_type || userData.ipType || userData.current_ip_type;
+      
+      const deviceData = await fetchDeviceData(
+        userData.device_id,
+        currentIpType
+      );
+      
       if (deviceData) {
         setDeviceName(deviceData.name);
-        startCountdown(deviceData.endTime, deviceData.name);
+        setIpType(deviceData.ipType);
+        startCountdown(deviceData.endTime, deviceData.name, deviceData.ipType);
       }
     };
 
     initializeTimer();
-
-    // Refresh every minute
     const refreshInterval = setInterval(initializeTimer, 60000);
 
     return () => {
       clearInterval(timerRef.current);
       clearInterval(refreshInterval);
     };
-  }, [userData?.device_id, reservationId]);
+  }, [userData?.device_id, userData?.ip_type, userData?.ipType, userData?.current_ip_type]);
 
   return (
     <div className={`navbar-container ${isDarkTheme ? "dark" : ""}`}>
@@ -190,14 +206,8 @@ const Navbar = ({ isDarkTheme, toggleTheme, userData }) => {
           <img src={rutomatrixLogo} alt="Rutomatrix Logo" className="logo" />
         </div>
         <div className="navbar-right">
-          <button 
-            className="back-button" 
-            onClick={handleBackToReservations}
-          >
-            <ChevronLeft 
-              size={24} 
-              className="back-icon"
-            />
+          <button className="back-button" onClick={handleBackToReservations}>
+            <ChevronLeft size={24} className="back-icon" />
             <span className="back-text">Back</span>
           </button>
 
@@ -207,11 +217,16 @@ const Navbar = ({ isDarkTheme, toggleTheme, userData }) => {
             <div className="timer-error">{error}</div>
           ) : timeLeft ? (
             <div className={`device-timer`}>
-              <span className="Device-name" title={deviceName}>
-                {deviceName.length > 12 ? `${deviceName.substring(0, 10)}...` : deviceName} -
+              <span className="Device-name" title={`${deviceName} (${ipType})`}>
+                {deviceName.length > 12
+                  ? `${deviceName.substring(0, 10)}...`
+                  : deviceName}{" "} - 
               </span>
-              <span className={`timer ${isLast10Minutes ? 'last-10-minutes' : ''}`}>
-                <TimerIcon size={20} style={{ marginRight: '4px'}} /> {timeLeft}
+              <span
+                className={`timer ${isLast10Minutes ? "last-10-minutes" : ""}`}
+              >
+                <TimerIcon size={20} style={{ marginRight: "4px" }} />{" "}
+                {timeLeft}
               </span>
             </div>
           ) : (
