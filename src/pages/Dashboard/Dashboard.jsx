@@ -1929,7 +1929,8 @@ resetBtn.addEventListener('click', async () => {
   </script>
 </body>
 </html>`;
-    } else if (device.name.includes("Virtual")) {
+    } else if (isPC) {
+      const ip_add = ipAddress
       popupHTML = `<!DOCTYPE html>
 <html>
 <head>
@@ -1971,6 +1972,7 @@ resetBtn.addEventListener('click', async () => {
     .controls {
       display: flex;
       gap: 12px;
+      align-items: center;
     }
    
     .control-btn {
@@ -1986,24 +1988,61 @@ resetBtn.addEventListener('click', async () => {
       transition: all 0.2s;
     }
 
+    .dropdown-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 180px;
+    }
+
+    .dropdown-label {
+      font-size: 12px;
+      color: #BBBBBB;
+      font-weight: 500;
+    }
+
+    .dropdown-select {
+      background: #2A2A2A;
+      border: 1px solid #404040;
+      color: #FFFFFF;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+      outline: none;
+    }
+
+    .dropdown-select:hover {
+      border-color: #FF6A00;
+      background: #333333;
+    }
+
+    .dropdown-select:focus {
+      border-color: #FF6A00;
+      box-shadow: 0 0 0 2px rgba(255, 106, 0, 0.2);
+    }
+
+    .dropdown-select option {
+      background: #2A2A2A;
+      color: #FFFFFF;
+      padding: 8px;
+    }
 
     .device-info {
       display: flex;
       flex-direction: column;
     }
 
-
-     .device-name-row {
+    .device-name-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-
     #device-timer {
       margin-left: 10px;
     }
-
 
     .device-name {
       font-size: 18px;
@@ -2097,7 +2136,6 @@ resetBtn.addEventListener('click', async () => {
       transform: scale(1.1);
     }
 
-
     /* Fullscreen button styling */
     .fullscreen-btn {
       position: absolute;
@@ -2117,16 +2155,13 @@ resetBtn.addEventListener('click', async () => {
       z-index: 1000;
     }
 
-
     .fullscreen-btn:hover {
       background: #FF6A00;
     }
 
-
     .fullscreen-btn.show {
       display: flex;
     }
-
 
     /* Fullscreen styles */
     .remote-desktop-container.fullscreen {
@@ -2139,11 +2174,9 @@ resetBtn.addEventListener('click', async () => {
       border-radius: 0;
     }
 
-
     .remote-desktop-container.fullscreen .remote-desktop-header {
       display: none;
     }
-
 
     /* Spinning animation for loading */
     @keyframes spin {
@@ -2197,9 +2230,57 @@ resetBtn.addEventListener('click', async () => {
           </svg>
           Connect
         </button>
+        
+        <div class="dropdown-container">
+          <label class="dropdown-label" for="shortcutSelect">System Shortcuts</label>
+          <select class="dropdown-select" id="shortcutSelect" onchange="sendShortcut(this.value)">
+            <option value="">-- Select a Shortcut --</option>
+            <option value="esc">Esc</option>
+            <option value="ctrl_alt_del">Ctrl + Alt + Del</option>
+            <option value="ctrl_shift_esc">Ctrl + Shift + Esc</option>
+            <option value="alt_f4">Alt + F4</option>
+            <option value="win_l">Win + L</option>
+            <option value="win_d">Win + D</option>
+            <option value="win_tab">Win + Tab</option>
+            <option value="alt_tab">Alt + Tab</option>
+            <option value="alt_esc">Alt + Esc</option>
+            <option value="win_ctrl_d">Win + Ctrl + D</option>
+            <option value="win_ctrl_left">Win + Ctrl + Left</option>
+            <option value="win_ctrl_right">Win + Ctrl + Right</option>
+            <option value="win_up">Win + Up</option>
+            <option value="win_down">Win + Down</option>
+            <option value="win_left">Win + Left</option>
+            <option value="win_right">Win + Right</option>
+            <option value="fn_f1_f12">Fn + F1–F12</option>
+            <option value="ctrl_alt_right">Ctrl + Alt + →</option>
+            <option value="ctrl_alt_left">Ctrl + Alt + ←</option>
+            <option value="ctrl_n">Ctrl + N</option>
+            <option value="ctrl_w">Ctrl + W</option>
+            <option value="ctrl_t">Ctrl + T</option>
+            <option value="ctrl_shift_t">Ctrl + Shift + T</option>
+          </select>
+        </div>
+
+        <div class="dropdown-container">
+          <label class="dropdown-label" for="functionKeySelect">Function Keys</label>
+          <select class="dropdown-select" id="functionKeySelect" onchange="sendShortcut(this.value)">
+            <option value="">-- Select Function Key --</option>
+            <option value="f1">F1</option>
+            <option value="f2">F2</option>
+            <option value="f3">F3</option>
+            <option value="f4">F4</option>
+            <option value="f5">F5</option>
+            <option value="f6">F6</option>
+            <option value="f7">F7</option>
+            <option value="f8">F8</option>
+            <option value="f9">F9</option>
+            <option value="f10">F10</option>
+            <option value="f11">F11</option>
+            <option value="f12">F12</option>
+          </select>
+        </div>
       </div>
     </div>
-
 
     <div class="pc-content">
       <div class="remote-desktop-container" id="remote-desktop-container">
@@ -2226,7 +2307,6 @@ resetBtn.addEventListener('click', async () => {
     </div>
   </div>
 
-
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const connectBtn = document.getElementById('connect-btn');
@@ -2243,23 +2323,22 @@ resetBtn.addEventListener('click', async () => {
           // Show loading state
           remoteDesktopFeed.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">' +
             '<div style="border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid #FF6A00; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>' +
-            '<p style="margin-top: 10px;">Connecting to ${ipAddress}...</p>' +
+            '<p style="margin-top: 10px;">Connecting to ${ip_add}...</p>' +
             '</div>';
          
           remoteDesktopFeed.style.display = 'block';
 
-
           try {
-            const data = await testConnection('http://${ipAddress}:8000/start_stream')
-            const data1 = await testConnection1('http://${ipAddress}:5000/start_stream')
+            const data = await testConnection('http://${ip_add}:8000/start_stream')
+            const data1 = await testConnection1('http://${ip_add}:5000/start_stream')
             if (data.status === 'already running' || data.status === 'started') {
-              remoteDesktopFeed.innerHTML = "<img id='remoteDesktopImg' src='http://${ipAddress}:9000/stream?advance_headers=1&dual_final_frames=1' style='width: 100%; height: 100%; object-fit: contain;' />";
+              remoteDesktopFeed.innerHTML = "<img id='remoteDesktopImg' src='http://${ip_add}:9000/stream?advance_headers=1&dual_final_frames=1' style='width: 100%; height: 100%; object-fit: contain;' />";
              
               // Update button to disconnect
               connectBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Disconnect';
               connectBtn.classList.add('active');
               isConnected = true;
-             
+
               // Show fullscreen button
               fullscreenBtn.classList.add('show');
              
@@ -2277,10 +2356,8 @@ resetBtn.addEventListener('click', async () => {
         }
       });
 
-
       // Fullscreen control
       fullscreenBtn.addEventListener('click', toggleFullscreen);
-
 
       // ESC key to exit fullscreen
       document.addEventListener('keydown', (e) => {
@@ -2289,7 +2366,6 @@ resetBtn.addEventListener('click', async () => {
         }
       });
 
-
       // Fullscreen change event
       document.addEventListener('fullscreenchange', () => {
         if (!document.fullscreenElement) {
@@ -2297,7 +2373,6 @@ resetBtn.addEventListener('click', async () => {
           updateFullscreenButton(false);
         }
       });
-
 
       async function disconnect() {
        
@@ -2319,7 +2394,6 @@ resetBtn.addEventListener('click', async () => {
         }
       }
 
-
       function toggleFullscreen() {
         if (remoteDesktopContainer.classList.contains('fullscreen')) {
           exitFullscreen();
@@ -2328,7 +2402,6 @@ resetBtn.addEventListener('click', async () => {
         }
       }
 
-
       function enterFullscreen() {
         remoteDesktopContainer.classList.add('fullscreen');
         remoteDesktopContainer.requestFullscreen().catch(err => {
@@ -2336,7 +2409,6 @@ resetBtn.addEventListener('click', async () => {
         });
         updateFullscreenButton(true);
       }
-
 
       function exitFullscreen() {
         remoteDesktopContainer.classList.remove('fullscreen');
@@ -2348,7 +2420,6 @@ resetBtn.addEventListener('click', async () => {
         updateFullscreenButton(false);
       }
 
-
       function updateFullscreenButton(isFullscreen) {
         if (isFullscreen) {
           fullscreenBtn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
@@ -2357,17 +2428,14 @@ resetBtn.addEventListener('click', async () => {
         }
       }
 
-
       function setupMouseAndKeyboard() {
         const video = document.getElementById("remoteDesktopImg");
-
 
         video.addEventListener("click", () => {
           console.log('clicked');
           video.requestPointerLock = video.requestPointerLock || video.mozRequestPointerLock || video.webkitRequestPointerLock;
           video.requestPointerLock();
         });
-
 
         document.addEventListener("keydown", function (e) {
           if (document.pointerLockElement === video) {
@@ -2379,18 +2447,15 @@ resetBtn.addEventListener('click', async () => {
             const isModifier = [16, 17, 18, 91].includes(e.keyCode);
             if (!isModifier) jsCodes.push(e.keyCode);
 
-
-            fetch("http://${ipAddress}:5000/keyboard", {
+            fetch("http://${ip_add}:5000/keyboard", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ keycodes: jsCodes })
             });
 
-
             e.preventDefault();
           }
         });
-
 
         function smoothMouseDelta(dx, dy, threshold = 1) {
           dx = Math.abs(dx) >= threshold ? dx : 0;
@@ -2398,11 +2463,10 @@ resetBtn.addEventListener('click', async () => {
           return [dx, dy];
         }
 
-
         document.addEventListener("mousemove", (e) => {
           if (document.pointerLockElement === video) {
             let [dx, dy] = smoothMouseDelta(e.movementX, e.movementY);
-            fetch("http://${ipAddress}:5000/mouse", {
+            fetch("http://${ip_add}:5000/mouse", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ x: dx, y: dy, buttons: e.buttons, wheel: 0 })
@@ -2410,10 +2474,9 @@ resetBtn.addEventListener('click', async () => {
           }
         });
 
-
         document.addEventListener("mousedown", (e) => {
           if (document.pointerLockElement === video) {
-            fetch("http://${ipAddress}:5000/mouse", {
+            fetch("http://${ip_add}:5000/mouse", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ x: 0, y: 0, buttons: (1 << e.button), wheel: 0 })
@@ -2421,10 +2484,9 @@ resetBtn.addEventListener('click', async () => {
           }
         });
 
-
         document.addEventListener("mouseup", (e) => {
           if (document.pointerLockElement === video) {
-            fetch("http://${ipAddress}:5000/mouse", {
+            fetch("http://${ip_add}:5000/mouse", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ x: 0, y: 0, buttons: 0, wheel: 0 })
@@ -2432,10 +2494,9 @@ resetBtn.addEventListener('click', async () => {
           }
         });
 
-
         document.addEventListener("wheel", (e) => {
           if (document.pointerLockElement === video) {
-            fetch("http://${ipAddress}:5000/mouse", {
+            fetch("http://${ip_add}:5000/mouse", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ x: 0, y: 0, buttons: 0, wheel: e.deltaY > 0 ? 0xFF : 0x01 })
@@ -2443,9 +2504,9 @@ resetBtn.addEventListener('click', async () => {
           }
         });
       }
+    });
 
-
-      async function testConnection(url) {
+    async function testConnection(url) {
         try {
           const response = await fetch(url, {
             method: 'POST',
@@ -2463,7 +2524,6 @@ resetBtn.addEventListener('click', async () => {
           };
         }
       }
-
 
       async function testConnection1(url) {
         try {
@@ -2483,11 +2543,27 @@ resetBtn.addEventListener('click', async () => {
           };
         }
       }
-    });
+
+      function sendShortcut(action) {
+        if (!action) return; // ignore if nothing selected
+        
+        console.log('Sending shortcut:', action);
+        
+        fetch(\`http://\${ip_add}:5000/shortcut/\${action}\`, { 
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        })
+        .then(res => res.text())
+        .then(data => {
+          // Reset the dropdown selection after sending
+          document.getElementById('shortcutSelect').value = '';
+          document.getElementById('functionKeySelect').value = '';
+        })
+        .catch(err => console.error('Shortcut error:', err));
+      }
   </script>
 </body>
-</html>`;
-
+</html>`
     } else {
       popupHTML = `<!DOCTYPE html>
 <html>
