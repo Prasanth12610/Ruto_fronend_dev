@@ -98,12 +98,11 @@ const Dashboard = () => {
     rutomatrix_ip: { name: "Rutomatrix", iconType: "MonitorSmartphone" },
   };
 
-  const userData = {
-    name: "Admin User",
-    email: "admin@rutomatrix.com",
+  const [userData, setUserData] = useState({
+    name: "",
     avatar: <CircleUserRound size={30} />,
     onLogout: () => console.log("Logging out..."),
-  };
+  });
 
   const toggleTheme = () => {
     const newTheme = !isDarkTheme;
@@ -134,6 +133,11 @@ const Dashboard = () => {
 
           if (matchedDevice) {
             setDeviceEndTime(new Date(matchedDevice.end_time)); // Set the end time
+            setUserData((prev) => ({  //update user info with username
+              ...prev,
+              name: matchedDevice.user_name || "Unknown User",
+            }));
+
             const ipTypes = ipTypesParam
               ? ipTypesParam.split(",")
               : matchedDevice.ip_type.split(",");
@@ -1240,6 +1244,9 @@ resetBtn.addEventListener('click', async () => {
       try {
 
         showLoadingState();
+         // Show loading spinner while stopping services
+          cameraFeed.innerHTML = '<div class="loading-spinner"></div>';
+          thermalFeed.innerHTML = '<div class="loading-spinner"></div>';
 
         // Start the services again in case they were stopped
         const servicesStarted = await Promise.all([
@@ -1281,8 +1288,10 @@ resetBtn.addEventListener('click', async () => {
           cameraFeed.appendChild(cameraImg);
         };
         cameraImg.onerror = () => {
-          cameraFeed.innerHTML = '<div class="feed-Placeholder">Camera feed error</div>';
-          console.error('Camera stream error - retrying in 2s...');
+          //cameraFeed.innerHTML = '<div class="feed-Placeholder">Camera feed error</div>';
+          // Show loading spinner while retry to start services
+          cameraFeed.innerHTML = '<div class="loading-spinner"></div>';
+          console.error('Camera stream error - retrying in 1s...');
           setTimeout(() => {
             cameraImg.src = cameraFeedAPI + '?t=' + Date.now();
           }, 2000);
@@ -1297,8 +1306,10 @@ resetBtn.addEventListener('click', async () => {
           thermalFeed.appendChild(thermalImg);
         };
         thermalImg.onerror = () => {
-          thermalFeed.innerHTML = '<div class="feed-Placeholder">Thermal feed error</div>';
-          console.error('Thermal stream error - retrying in 2s...');
+          //thermalFeed.innerHTML = '<div class="feed-Placeholder">Thermal feed error</div>';
+          // Show loading spinner while retry to start services
+          thermalFeed.innerHTML = '<div class="loading-spinner"></div>';
+          console.error('Thermal stream error - retrying in 1s...');
           setTimeout(() => {
             thermalImg.src = thermalFeedAPI + '?t=' + Date.now();
           }, 2000);
@@ -2692,7 +2703,6 @@ resetBtn.addEventListener('click', async () => {
               <div className="user-avatar">{userData.avatar}</div>
               <div className="user-details">
                 <div className="user-name">{userData.name}</div>
-                <div className="user-email">{userData.email}</div>
               </div>
             </div>
 
