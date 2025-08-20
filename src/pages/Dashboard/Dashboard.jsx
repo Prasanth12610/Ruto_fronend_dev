@@ -1884,42 +1884,22 @@ resetBtn.addEventListener('click', async () => {
             '<div style="border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid #FF6A00; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>' +
             '<p style="margin-top: 10px;">Launching PulseView...</p>' +
             '</div>';
-          
+            
           try {
-            // First call the API to launch PulseView
-            const response = await fetch(\`http://\${ipAddress}:7417/launch_pulseview\`, {
-              method: 'GET',
-              mode: 'cors',
-              headers: {
-                'Accept': 'application/json'
-              }
-            });
- 
-            const data = await response.json();
+            pulseViewerIframe.src = 'http://100.120.49.21/pulseview/';
+            pulseViewerIframe.onload = () => {
+              pulseViewerFeed.style.display = 'none';
+              pulseViewerIframe.style.display = 'block';
+              launchBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Close PulseView';
+              launchBtn.classList.add('active');
+              showAlert('success', 'PulseView launched successfully');
+            };
             
-            if (!response.ok || !data.success) {
-              throw new Error(data.message || 'Failed to launch PulseView');
-            }
-            
-            showAlert('success', 'PulseView launched successfully');
-            
-            // Then load the PulseView interface after a short delay to ensure it's ready
-            setTimeout(() => {
-              pulseViewerIframe.src = \`http://\${ipAddress}:7417/\`;
-              pulseViewerIframe.onload = () => {
-                pulseViewerFeed.style.display = 'none';
-                pulseViewerIframe.style.display = 'block';
-                launchBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Close PulseView';
-                launchBtn.classList.add('active');
-              };
-              
-              pulseViewerIframe.onerror = () => {
-                pulseViewerFeed.innerHTML = '<div style="color: #ff4d4d;">Failed to load PulseView interface</div>';
-                launchBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Retry';
-                launchBtn.classList.remove('active');
-              };
-            }, 1000);
-            
+            pulseViewerIframe.onerror = () => {
+              pulseViewerFeed.innerHTML = '<div style="color: #ff4d4d;">Failed to load PulseView interface</div>';
+              launchBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Retry';
+              launchBtn.classList.remove('active');
+            };
           } catch (error) {
             console.error('PulseView launch error:', error);
             pulseViewerFeed.innerHTML = \`<div style="color: #ff4d4d;">\${error.message || 'Failed to launch PulseView'}</div>\`;
@@ -1927,13 +1907,12 @@ resetBtn.addEventListener('click', async () => {
             showAlert('error', error.message || 'Failed to launch PulseView');
           }
         } else {
-          // Close PulseView
-          pulseViewerIframe.src = '';
           pulseViewerIframe.style.display = 'none';
           pulseViewerFeed.style.display = 'block';
-          pulseViewerFeed.innerHTML = '<div class="pulse-viewer-placeholder">PulseView not launched</div>';
+          pulseViewerFeed.innerHTML = '<div class="pulse-viewer-placeholder">PulseView is not started</div>';
           launchBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Launch PulseView';
           launchBtn.classList.remove('active');
+          showAlert('success', 'PulseView stopped successfully');
         }
       });
     });
