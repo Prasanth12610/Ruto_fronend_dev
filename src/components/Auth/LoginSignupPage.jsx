@@ -30,9 +30,7 @@ import logo from "../../assets/RutoMatrix_Nonbackground.png";
 import tes_logo from "../../assets/tessolve.png";
 import view1 from "../../assets/images/Top1.png";
 import view2 from "../../assets/images/Fan1.png";
-import view2_ from "../../assets/images/view2_.png";
 import view3 from "../../assets/images/Ports.png";
-import view4 from "../../assets/images/view4.png";
 import view5 from "../../assets/images/Sideview.png";
 
 const LoginSignupPage = ({ setIsAuthenticated }) => {
