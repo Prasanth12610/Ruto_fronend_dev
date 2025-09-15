@@ -379,7 +379,7 @@ const LoginSignupPage = ({ setIsAuthenticated }) => {
           {/* 3D Model + Drag Hint */}
           <div className="model-modal-content">
             <ThreeDModel
-              url="/models/RUTOMATRIX_Final.glb"
+              url="/models/RUTOMATRIX_Final1.glb"
               view={view}
               rotate={rotate}
               zoomDirection={zoomDirection}
