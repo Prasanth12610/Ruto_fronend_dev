@@ -2,11 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import "./LoginSignupPage.css";
 import ThreeDModel from "./ThreeDModel";
 import {
-  User,
-  Lock,
   ArrowRight,
   SquareArrowOutUpRight,
-  AlertCircle,
   ChevronUp,
   ChevronRight,
   ChevronLeft,
@@ -15,7 +12,6 @@ import {
   ChartNoAxesCombined,
   Split,
   X,
-  Box,
   LassoSelect,
   Rotate3d,
 } from "lucide-react";
@@ -27,26 +23,21 @@ import sl3 from "../../assets/bg3_.png";
 import sl4 from "../../assets/Sl4.png";
 import sl5 from "../../assets/Sl5.png";
 import logo from "../../assets/RutoMatrix_Nonbackground.png";
-import tes_logo from "../../assets/tessolve.png";
+import tes_logo from "../../assets/images/tessolve.png";
 import view1 from "../../assets/images/Top1.png";
 import view2 from "../../assets/images/Fan1.png";
-import view3 from "../../assets/images/Ports.png";
-import view5 from "../../assets/images/Sideview.png";
+import view3 from "../../assets/images/Ports1.png";
+import view5 from "../../assets/images/Sideview1.png";
 
 const LoginSignupPage = ({ setIsAuthenticated }) => {
   const [activeSection, setActiveSection] = useState("hero");
   const [view, setView] = useState("isometric");
   const [scrolled, setScrolled] = useState(false);
-  const [username, setUsername] = useState("");
   const [atTop, setAtTop] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const slideInterval = useRef();
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [showLoginOverlay, setShowLoginOverlay] = useState(false);
   const [show3DModel, setShow3DModel] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
   const [dragHintVisible, setDragHintVisible] = useState(true);
   const featureSlides = [
     {
