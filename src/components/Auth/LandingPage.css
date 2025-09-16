@@ -1086,7 +1086,13 @@ body.showcase-section {
 
 section#contact {
   background: url("../../assets/Server2.png") no-repeat center center/cover;
-  padding: 80px 0;
+  padding: 120px 0;
+}
+
+.contact-content {
+    padding: 30px;
+    line-height: 40px;
+    display: contents;
 }
 
 .info-item h4 {

@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import "./index.css";
 import "@fontsource/poppins"; // Defaults to weight 400
-import LoginSignupPage from './components/Auth/LoginSignupPage';
+import LandingPage from './components/Auth/LandingPage';
 import { Navigate } from 'react-router-dom';
 
 
@@ -12,7 +12,7 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/" element={<Navigate to="/auth" replace />} />
-        <Route path="/auth" element={<LoginSignupPage />} />
+        <Route path="/auth" element={<LandingPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </Router>

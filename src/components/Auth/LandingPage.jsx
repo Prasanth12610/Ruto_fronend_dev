@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import "./LoginSignupPage.css";
+import "./LandingPage.css";
 import ThreeDModel from "./ThreeDModel";
 import {
   ArrowRight,
@@ -14,7 +14,6 @@ import {
   X,
   LassoSelect,
   Rotate3d,
-  MoveRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import rutomatrix from "../../assets/RUTOMATRIX-bg1.png";
@@ -30,7 +29,7 @@ import view2 from "../../assets/images/Fan1.png";
 import view3 from "../../assets/images/Ports1.png";
 import view5 from "../../assets/images/Sideview1.png";
 
-const LoginSignupPage = ({ setIsAuthenticated }) => {
+const LandingPage = ({ setIsAuthenticated }) => {
   const [activeSection, setActiveSection] = useState("hero");
   const [view, setView] = useState("isometric");
   const [scrolled, setScrolled] = useState(false);
@@ -908,4 +907,4 @@ Monitor, decode, and analyze communication seamlessly.
   );
 };
 
-export default LoginSignupPage;
+export default LandingPage;
