@@ -38,6 +38,7 @@ const LandingPage = ({ setIsAuthenticated }) => {
   const slideInterval = useRef();
   const [showLoginOverlay, setShowLoginOverlay] = useState(false);
   const [show3DModel, setShow3DModel] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(false);
   const [dragHintVisible, setDragHintVisible] = useState(true);
   const featureSlides = [
     {
@@ -409,11 +410,15 @@ const LandingPage = ({ setIsAuthenticated }) => {
               >
                 Explore Features
               </button>
-              <button className="secondary-btn" onClick={handleLaunchDashboard}>
+              <button 
+                className="secondary-btn" 
+                onClick={handleLaunchDashboard} 
+                disabled={true}  // <-- disables the button
+              >
                 Launch Dashboard{" "}
                 <SquareArrowOutUpRight
                   size={18}
-                  marginLeft={16}
+                  style={{ marginLeft: 16 }} // use style instead of prop
                   className="button-icon"
                 />
               </button>
@@ -508,8 +513,8 @@ const LandingPage = ({ setIsAuthenticated }) => {
               <h3>Rutoscope</h3>
               <p>
                 Rutoscope is a powerful logic analyzer for modern digital systems.
-Supports all major protocols with deep visibility and precision.
-Monitor, decode, and analyze communication seamlessly.
+                Supports all major protocols with deep visibility and precision.
+                Monitor, decode, and analyze communication seamlessly.
               </p>
             </div>
 

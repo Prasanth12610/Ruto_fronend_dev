@@ -120,6 +120,17 @@ p {
   box-shadow: 0 4px 12px rgba(9, 113, 179, 0.2);
 }
 
+.secondary-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6; /* dims the whole button */
+}
+
+.secondary-btn:disabled .button-icon {
+  color: gray;  /* arrow turns gray */
+  opacity: 0.5; /* softer look */
+}
+
+
 /* Navigation */
 .navbar {
   position: fixed;
@@ -715,6 +726,7 @@ p {
   border-image: initial;
   border-radius: 50%;
   transition: 0.3s;
+  padding: 12.5px;
 }
 
 .slideshow-arrows {
@@ -1090,9 +1102,9 @@ section#contact {
 }
 
 .contact-content {
-    padding: 30px;
-    line-height: 40px;
-    display: contents;
+  padding: 30px;
+  line-height: 40px;
+  display: contents;
 }
 
 .info-item h4 {
