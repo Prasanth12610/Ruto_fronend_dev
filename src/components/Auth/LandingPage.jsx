@@ -410,7 +410,7 @@ const LandingPage = ({ setIsAuthenticated }) => {
               >
                 Explore Features
               </button>
-              <button 
+              {/* <button 
                 className="secondary-btn" 
                 onClick={handleLaunchDashboard} 
                 disabled={true}  // <-- disables the button
@@ -421,7 +421,7 @@ const LandingPage = ({ setIsAuthenticated }) => {
                   style={{ marginLeft: 16 }} // use style instead of prop
                   className="button-icon"
                 />
-              </button>
+              </button> */}
             </div>
           </div>
           <div className="hero-image">
@@ -767,7 +767,7 @@ const LandingPage = ({ setIsAuthenticated }) => {
 
       {/* Contact Section */}
       <section id="contact" className="contact-section">
-        <div className="container" style={{ marginRight: '215px' }}>
+        <div className="container" style={{ marginLeft: '30px' }}>
           <div className="contact-content">
             <h2>Ready to Transform Your Workflow?</h2>
             <p>

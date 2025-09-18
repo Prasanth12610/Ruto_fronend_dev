@@ -720,6 +720,7 @@ p {
   width: 50px;
   z-index: 10;
   background: rgba(9, 113, 179, 0.7);
+  border: #dbecfa;
   border-width: initial;
   border-style: none;
   border-color: initial;
