@@ -28,6 +28,7 @@ import view1 from "../../assets/images/Top1.png";
 import view2 from "../../assets/images/Fan1.png";
 import view3 from "../../assets/images/Ports1.png";
 import view5 from "../../assets/images/Sideview1.png";
+import server from "../../assets/new_server.jpeg";
 
 const LandingPage = ({ setIsAuthenticated }) => {
   const [activeSection, setActiveSection] = useState("hero");
@@ -296,6 +297,74 @@ const LandingPage = ({ setIsAuthenticated }) => {
     }
   }, [showLoginOverlay]);
 
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    mobile: "",
+    company: "",
+    position: "",
+    location: "",
+    message: "",
+  });
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSending(true);
+
+    try {
+      // Send email using EmailJS or your backend API
+      await sendEmail(formData);
+
+      // Show success message
+      setIsSubmitted(true);
+
+      // Reset after 4 seconds
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setShowContactForm(false);
+        setFormData({
+          name: "",
+          email: "",
+          mobile: "",
+          company: "",
+          position: "",
+          location: "",
+          message: "",
+        });
+      }, 9000);
+    } catch (error) {
+      console.error("Error sending email:", error);
+      alert("Failed to send message. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const sendEmail = async (data) => {
+    const response = await fetch("http://localhost:5000/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to send email");
+    }
+
+    return await response.json();
+  };
+
   return (
     <div className="app">
       {/* Navigation */}
@@ -512,9 +581,10 @@ const LandingPage = ({ setIsAuthenticated }) => {
               <div className="feature-icon">📈</div>
               <h3>Rutoscope</h3>
               <p>
-                Rutoscope is a powerful logic analyzer for modern digital systems.
-                Supports all major protocols with deep visibility and precision.
-                Monitor, decode, and analyze communication seamlessly.
+                Rutoscope is a powerful logic analyzer for modern digital
+                systems. Supports all major protocols with deep visibility and
+                precision. Monitor, decode, and analyze communication
+                seamlessly.
               </p>
             </div>
 
@@ -522,8 +592,9 @@ const LandingPage = ({ setIsAuthenticated }) => {
               <div className="feature-icon">📷</div>
               <h3>Rutocam</h3>
               <p>
-                Real-time thermal imaging with precision sensors—detect heat signatures for diagnostics,
-                 safety, and monitoring, seamlessly integrated with Rutomatrix.
+                Real-time thermal imaging with precision sensors—detect heat
+                signatures for diagnostics, safety, and monitoring, seamlessly
+                integrated with Rutomatrix.
               </p>
             </div>
 
@@ -660,7 +731,6 @@ const LandingPage = ({ setIsAuthenticated }) => {
       </section>
 
       {/* Showcase Section */}
-
       <section
         id="showcase"
         className={`showcase-section ${showcaseState}`}
@@ -767,20 +837,168 @@ const LandingPage = ({ setIsAuthenticated }) => {
 
       {/* Contact Section */}
       <section id="contact" className="contact-section">
-        <div className="container" style={{ marginLeft: '30px' }}>
-          <div className="contact-content">
-            <h2>Ready to Transform Your Workflow?</h2>
-            <p>
-              Contact our team to discuss how Rutomatrix can meet your specific
-              requirements.
-            </p>
-            <button
-              className="contact-btn"
-              onClick={() => scrollToSection("hero")}
-            >
-              Contact us <ArrowRight color="#ffffff" />
-            </button>
-          </div>
+        <div className="container">
+          {!showContactForm ? (
+            <div className="contact-default">
+              <div className="contact-content-left">
+                <h2>Ready to Transform Your Workflow?</h2>
+                <p>
+                  Contact our team to discuss how Rutomatrix can meet your
+                  specific requirements.
+                </p>
+                <button
+                  className="contact-btn"
+                  onClick={() => setShowContactForm(true)}
+                >
+                  Contact us <ArrowRight color="#ffffff" />
+                </button>
+              </div>
+              <div className="contact-image-right">
+                <img
+                  src={server}
+                  alt="Server Infrastructure"
+                  className="server-image"
+                />
+              </div>
+            </div>
+          ) : isSubmitted ? (
+            <div className="success-animation">
+              <svg
+                className="checkmark"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 52 52"
+              >
+                <circle
+                  className="checkmark-circle"
+                  cx="26"
+                  cy="26"
+                  r="25"
+                  fill="none"
+                />
+                <path
+                  className="checkmark-check"
+                  fill="none"
+                  d="M14.1 27.2l7.1 7.2 16.7-16.8"
+                />
+              </svg>
+              <h2 className="success-message">Message Sent Successfully!</h2>
+              <p>We'll get back to you within 24 hours.</p>
+            </div>
+          ) : (
+            <div className="contact-form-container">
+              <button
+                className="Contact_close-btn"
+                onClick={() => setShowContactForm(false)}
+              >
+                <X size={24} />
+              </button>
+
+              <div className="contact-form-content">
+                <h2>Reach out</h2>
+                <p className="form-subtitle">We’re always happy to help.</p>
+
+                <form onSubmit={handleSubmit} className="contact-form">
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="name">Your Name*</label>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="email">Your Email*</label>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="mobile">Your Mobile*</label>
+                      <input
+                        type="tel"
+                        id="mobile"
+                        name="mobile"
+                        value={formData.mobile}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="company">Company Name*</label>
+                      <input
+                        type="text"
+                        id="company"
+                        name="company"
+                        value={formData.company}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="position">Job Title/Position*</label>
+                      <input
+                        type="text"
+                        id="position"
+                        name="position"
+                        value={formData.position}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="location">Location*</label>
+                      <input
+                        type="text"
+                        id="location"
+                        name="location"
+                        value={formData.location}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group full-width">
+                    <label htmlFor="message">Message</label>
+                    <textarea
+                      id="message"
+                      name="message"
+                      rows="4"
+                      value={formData.message}
+                      onChange={handleInputChange}
+                      placeholder="Your Message"
+                    ></textarea>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className={`submit-btn ${isSending ? "sending" : ""}`}
+                    disabled={isSending}
+                  >
+                    {isSending ? "Sending..." : "Submit"}
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
