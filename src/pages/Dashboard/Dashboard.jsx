@@ -1016,16 +1016,16 @@ const Dashboard = () => {
 <script>
     document.addEventListener('DOMContentLoaded', () => {
       // API Endpoints
-      const startCameraAPI = "http://100.124.235.42:8000/start-camera";
-      const stopCameraAPI = "http://100.124.235.42:8000/stop-camera";
-      const startThermalAPI = "http://100.124.235.42:8000/start-thermal";
-      const stopThermalAPI = "http://100.124.235.42:8000/stop-thermal";
-      const cameraFeedAPI = "http://100.124.235.42:8001/camera.mjpg";
-      const thermalFeedAPI = "http://100.124.235.42:8002/thermal";
-      const cameraVerifiedAPI = "http://100.124.235.42:8001/camera_verified";
-      const thermalVerifiedAPI = "http://100.124.235.42:8002/thermal_verified";
-      const startServoAPI = "http://100.124.235.42:8000/start-servo";
-      const stopServoAPI = "http://100.124.235.42:8000/stop-servo";
+      const startCameraAPI = "http://10.8.47.50:8000/start-camera";
+      const stopCameraAPI = "http://10.8.47.50:8000/stop-camera";
+      const startThermalAPI = "http://10.8.47.50:8000/start-thermal";
+      const stopThermalAPI = "http://10.8.47.50:8000/stop-thermal";
+      const cameraFeedAPI = "http://10.8.47.50:8001/camera.mjpg";
+      const thermalFeedAPI = "http://10.8.47.50:8002/thermal";
+      const cameraVerifiedAPI = "http://10.8.47.50:8001/camera_verified";
+      const thermalVerifiedAPI = "http://10.8.47.50:8002/thermal_verified";
+      const startServoAPI = "http://10.8.47.50:8000/start-servo";
+      const stopServoAPI = "http://10.8.47.50:8000/stop-servo";
       const panel = document.getElementById('servo-panel');
       const angleDisplay = document.getElementById('angle-display');
 
@@ -1401,7 +1401,7 @@ resetBtn.addEventListener('click', async () => {
       
     
     //Servo Control Script
-    const SERVER = "http://100.124.235.42:8003";  //RPi backend URL
+    const SERVER = "http://10.8.47.50:8003";  //RPi backend URL
 
     let servoRunning = false;  // Track state
 
@@ -1832,7 +1832,7 @@ resetBtn.addEventListener('click', async () => {
       const fullscreenBtn = document.getElementById('fullscreen-btn');
       const fullscreenIcon = document.getElementById('fullscreen-icon');
       const pulseViewerContainer = document.getElementById('pulse-viewer-container');
-      const ipAddress = "${ipAddress}";
+      const ipAddress = "10.8.47.7";
  
       function showAlert(type, message) {
         const alertDiv = document.createElement('div');
@@ -1886,7 +1886,7 @@ resetBtn.addEventListener('click', async () => {
             '</div>';
             
           try {
-            pulseViewerIframe.src = 'http://100.120.49.21/pulseview/';
+            pulseViewerIframe.src = 'http://10.8.47.7/pulseview/';
             pulseViewerIframe.onload = () => {
               pulseViewerFeed.style.display = 'none';
               pulseViewerIframe.style.display = 'block';
@@ -1920,7 +1920,7 @@ resetBtn.addEventListener('click', async () => {
 </body>
 </html>`;
     } else if (isPC) {
-      const ip_add = ipAddress
+      const ip_add = '10.8.46.183'
       popupHTML = `<!DOCTYPE html>
 <html>
 <head>
@@ -2539,7 +2539,7 @@ resetBtn.addEventListener('click', async () => {
         
         console.log('Sending shortcut:', action);
         
-        fetch(\`http://\${ip_add}:5000/shortcut/\${action}\`, { 
+        fetch(\`http://10.8.46.183:5000/shortcut/\${action}\`, { 
           method: "POST",
           headers: { "Content-Type": "application/json" }
         })
