@@ -881,8 +881,10 @@ const LandingPage = ({ setIsAuthenticated }) => {
                   d="M14.1 27.2l7.1 7.2 16.7-16.8"
                 />
               </svg>
-              <h2 className="success-message">Message Sent Successfully!</h2>
-              <p>We'll get back to you within 24 hours.</p>
+              <h2 className="success-message">
+                Your Response Sent Successfully!
+              </h2>
+              <p className="para">We'll get back to you within 24 hours.</p>
             </div>
           ) : (
             <div className="contact-form-container">
