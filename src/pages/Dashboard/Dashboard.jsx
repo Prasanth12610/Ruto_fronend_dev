@@ -2320,7 +2320,7 @@ resetBtn.addEventListener('click', async () => {
 
           try {
             const data = await testConnection('http://${ip_add}:8000/start_stream')
-            const data1 = await testConnection1('http://${ip_add}:5000/start_stream')
+            const data1 = await testConnection1('http://${ip_add}:9005/start_stream')
             if (data.status === 'already running' || data.status === 'started') {
               remoteDesktopFeed.innerHTML = "<img id='remoteDesktopImg' src='http://${ip_add}:9000/stream?advance_headers=1&dual_final_frames=1' style='width: 100%; height: 100%; object-fit: contain;' />";
              
@@ -2437,7 +2437,7 @@ resetBtn.addEventListener('click', async () => {
             const isModifier = [16, 17, 18, 91].includes(e.keyCode);
             if (!isModifier) jsCodes.push(e.keyCode);
 
-            fetch("http://${ip_add}:5000/keyboard", {
+            fetch("http://${ip_add}:9005/keyboard", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ keycodes: jsCodes })
@@ -2456,7 +2456,7 @@ resetBtn.addEventListener('click', async () => {
         document.addEventListener("mousemove", (e) => {
           if (document.pointerLockElement === video) {
             let [dx, dy] = smoothMouseDelta(e.movementX, e.movementY);
-            fetch("http://${ip_add}:5000/mouse", {
+            fetch("http://${ip_add}:9005/mouse", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ x: dx, y: dy, buttons: e.buttons, wheel: 0 })
@@ -2466,7 +2466,7 @@ resetBtn.addEventListener('click', async () => {
 
         document.addEventListener("mousedown", (e) => {
           if (document.pointerLockElement === video) {
-            fetch("http://${ip_add}:5000/mouse", {
+            fetch("http://${ip_add}:9005/mouse", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ x: 0, y: 0, buttons: (1 << e.button), wheel: 0 })
@@ -2476,7 +2476,7 @@ resetBtn.addEventListener('click', async () => {
 
         document.addEventListener("mouseup", (e) => {
           if (document.pointerLockElement === video) {
-            fetch("http://${ip_add}:5000/mouse", {
+            fetch("http://${ip_add}:9005/mouse", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ x: 0, y: 0, buttons: 0, wheel: 0 })
@@ -2486,7 +2486,7 @@ resetBtn.addEventListener('click', async () => {
 
         document.addEventListener("wheel", (e) => {
           if (document.pointerLockElement === video) {
-            fetch("http://${ip_add}:5000/mouse", {
+            fetch("http://${ip_add}:9005/mouse", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ x: 0, y: 0, buttons: 0, wheel: e.deltaY > 0 ? 0xFF : 0x01 })
@@ -2539,7 +2539,7 @@ resetBtn.addEventListener('click', async () => {
         
         console.log('Sending shortcut:', action);
         
-        fetch(\`http://10.8.46.183:5000/shortcut/\${action}\`, { 
+        fetch(\`http://10.8.46.183:9005/shortcut/\${action}\`, { 
           method: "POST",
           headers: { "Content-Type": "application/json" }
         })
