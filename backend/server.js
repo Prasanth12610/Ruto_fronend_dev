@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
@@ -6,15 +7,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// POST route for sending email
 app.post("/send-email", async (req, res) => {
   const { name, email, mobile, company, position, location, message } =
     req.body;
 
   try {
-    // Configure transporter
     let transporter = nodemailer.createTransport({
-      service: "gmail", // or "outlook", "yahoo" or your SMTP
+      service: "gmail", 
       auth: {
         user: process.env.USER_EMAIL,
         pass: process.env.USER_PASSWORD,
@@ -29,21 +28,22 @@ app.post("/send-email", async (req, res) => {
     //   }
     // });
 
-    let mailOptions = {
-      from: `"${name}" <${email}>`,
-      to: process.env.USER_EMAIL,
-      replyTo: `${email}`,
-      subject: `New Contact Form Submission from ${name}`,
-      text: `
-    Name: ${name}
-    Email: ${email}
-    Mobile: ${mobile}
-    Company: ${company}
-    Position: ${position}
-    Location: ${location}
-    Message: ${message}
-  `,
-    };
+  let mailOptions = {
+    from: `"${name}" <${process.env.USER_EMAIL}>`, 
+    to: process.env.USER_EMAIL,  
+    replyTo: email, 
+    subject: `New Contact Form Submission from ${name}`,
+    text: `
+      Name: ${name}
+      Email: ${email}
+      Mobile: ${mobile}
+      Company: ${company}
+      Position: ${position}
+      Location: ${location}
+      Message: ${message}
+    `,
+  };
+
 
     await transporter.sendMail(mailOptions);
     res.json({ success: true, message: "Email sent successfully!" });

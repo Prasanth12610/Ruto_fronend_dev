@@ -479,10 +479,10 @@ const LandingPage = ({ setIsAuthenticated }) => {
               >
                 Explore Features
               </button>
-              {/* <button 
+              <button 
                 className="secondary-btn" 
                 onClick={handleLaunchDashboard} 
-                disabled={true}  // <-- disables the button
+                disabled={false}  // <-- disables the button
               >
                 Launch Dashboard{" "}
                 <SquareArrowOutUpRight
@@ -490,7 +490,7 @@ const LandingPage = ({ setIsAuthenticated }) => {
                   style={{ marginLeft: 16 }} // use style instead of prop
                   className="button-icon"
                 />
-              </button> */}
+              </button>
             </div>
           </div>
           <div className="hero-image">
