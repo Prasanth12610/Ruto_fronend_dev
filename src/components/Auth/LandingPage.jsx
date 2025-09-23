@@ -19,7 +19,7 @@ import { useNavigate } from "react-router-dom";
 import rutomatrix from "../../assets/RUTOMATRIX-bg1.png";
 import sl1 from "../../assets/Sl1.png";
 import sl2 from "../../assets/Sl2.png";
-import sl3 from "../../assets/bg3_.png";
+import sl3 from "../../assets/Sl3.png";
 import sl4 from "../../assets/Sl4.png";
 import sl5 from "../../assets/Sl5.jpg";
 import logo from "../../assets/RutoMatrix_Nonbackground.png";
@@ -1009,7 +1009,7 @@ const LandingPage = ({ setIsAuthenticated }) => {
         <div className="container">
           <div className="footer-content">
             <div className="footer-logo"> </div>
-            <img src={tes_logo} className="footer-logo-img" />
+            <img src={tes_logo} className="footer-logo-img" alt="Tessolve Logo" />
           </div>
           <div className="footer-links">
             <h4>Product Engineering Services</h4>
