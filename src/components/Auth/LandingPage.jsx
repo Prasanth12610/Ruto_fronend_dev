@@ -479,10 +479,10 @@ const LandingPage = ({ setIsAuthenticated }) => {
               >
                 Explore Features
               </button>
-              <button 
-                className="secondary-btn" 
-                onClick={handleLaunchDashboard} 
-                disabled={false}  // <-- disables the button
+              <button
+                className="secondary-btn"
+                onClick={handleLaunchDashboard}
+                disabled={true} // <-- disables the button
               >
                 Launch Dashboard{" "}
                 <SquareArrowOutUpRight
@@ -1009,7 +1009,11 @@ const LandingPage = ({ setIsAuthenticated }) => {
         <div className="container">
           <div className="footer-content">
             <div className="footer-logo"> </div>
-            <img src={tes_logo} className="footer-logo-img" alt="Tessolve Logo" />
+            <img
+              src={tes_logo}
+              className="footer-logo-img"
+              alt="Tessolve Logo"
+            />
           </div>
           <div className="footer-links">
             <h4>Product Engineering Services</h4>
