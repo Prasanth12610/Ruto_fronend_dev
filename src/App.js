@@ -1,29 +1,22 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Sidebar from './components/Sidebar/Sidebar';
-import Navbar from './components/Navbar/Navbar';
-import Audio from './pages/Audio/Audio';
-import Thermal from './pages/Thermal/Thermal';
-// Add other page imports here
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Dashboard from "./pages/Dashboard/Dashboard";
+import "./index.css";
+import "@fontsource/poppins"; // Defaults to weight 400
+import LandingPage from './components/Auth/LandingPage';
+import { Navigate } from 'react-router-dom';
 
-function App() {
+
+const App = () => {
   return (
     <Router>
-      <div style={{ display: 'flex' }}>
-        <Sidebar />
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh' }}>
-          <Navbar />
-          <div style={{ padding: '1rem', flex: 1, overflowY: 'auto' }}>
-            <Routes>
-              <Route path="/audio" element={<Audio />} />
-              <Route path="/thermal" element={<Thermal />} />
-              {/* Add more routes here */}
-            </Routes>
-          </div>
-        </div>
-      </div>
+      <Routes>
+        <Route path="/" element={<Navigate to="/auth" replace />} />
+        <Route path="/auth" element={<LandingPage />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>
     </Router>
   );
-}
+};
 
 export default App;
