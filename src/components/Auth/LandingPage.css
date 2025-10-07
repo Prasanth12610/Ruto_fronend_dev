@@ -720,10 +720,10 @@ p {
   z-index: 10;
   background: rgba(9, 113, 179, 0.7);
   border: #dbecfa;
-  border-width: initial;
+/*  border-width: initial;
   border-style: none;
   border-color: initial;
-  border-image: initial;
+  border-image: initial; */
   border-radius: 50%;
   transition: 0.3s;
   padding: 12.5px;
