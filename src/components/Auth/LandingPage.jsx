@@ -671,7 +671,6 @@ const LandingPage = ({ setIsAuthenticated }) => {
       </section>
 
       {/* Feature Slideshow Section */}
-
       <section id="distinctive-edge" className="distinctive-edge-section">
         <div className="container">
           <h2 className="section-title">
