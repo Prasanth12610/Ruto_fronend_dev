@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import "./LandingPage.css";
+import "./LandingPage_1.css";
 import ThreeDModel from "./ThreeDModel";
 import {
   ArrowRight,
@@ -318,6 +318,14 @@ const LandingPage = ({ setIsAuthenticated }) => {
     }));
   };
 
+  // Add this state for mobile menu
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Add mobile menu toggle function
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSending(true);
@@ -370,47 +378,58 @@ const LandingPage = ({ setIsAuthenticated }) => {
       {/* Navigation */}
       <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
         <div className="container">
+          {/* Logo - Left corner */}
           <img className="logo_r" src={logo} alt="Rutomatrix Logo" />
-          <ul className="nav-links">
+          
+          {/* Mobile Menu Button */}
+          <button 
+            className={`mobile-menu-btn ${isMobileMenuOpen ? 'active' : ''}`} 
+            onClick={toggleMobileMenu}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          {/* Navigation Links */}
+          <ul className={`nav-links ${isMobileMenuOpen ? "active" : ""}`}>
             <li
               className={activeSection === "hero" ? "active" : ""}
-              onClick={() => scrollToSection("hero")}
+              onClick={() => { scrollToSection("hero"); setIsMobileMenuOpen(false); }}
             >
               Home
             </li>
             <li
               className={activeSection === "features" ? "active" : ""}
-              onClick={() => scrollToSection("features")}
+              onClick={() => { scrollToSection("features"); setIsMobileMenuOpen(false); }}
             >
               Features
             </li>
             <li
               className={activeSection === "distinctive-edge" ? "active" : ""}
-              onClick={() => scrollToSection("distinctive-edge")}
+              onClick={() => { scrollToSection("distinctive-edge"); setIsMobileMenuOpen(false); }}
             >
               Distinctive Edge
             </li>
             <li
               className={activeSection === "showcase" ? "active" : ""}
-              onClick={() => scrollToSection("showcase")}
+              onClick={() => { scrollToSection("showcase"); setIsMobileMenuOpen(false); }}
             >
               Showcase
             </li>
-            {
-              <li
-                className={activeSection === "contact" ? "active" : ""}
-                onClick={() => scrollToSection("contact")}
-              >
-                Contact us
-              </li>
-            }
-            {/* <li className="user-login"> <button className="user-icon-btn" onClick={() => setShowLoginOverlay(true)} > <User size={24} /> </button> </li>  360°*/}
-            <li className="3D-login">
-              {" "}
-              <button className="threeD-icon-btn" onClick={handle360Click}>
-                <Rotate3d size={24} />
+            <li
+              className={activeSection === "contact" ? "active" : ""}
+              onClick={() => { scrollToSection("contact"); setIsMobileMenuOpen(false); }}
+            >
+              Contact us
+            </li>
+            
+            {/* 360° Button - Right corner */}
+            <li className="threeD-login">
+              <button className="threeD-icon-btn" onClick={() => { handle360Click(); setIsMobileMenuOpen(false); }}>
+                <Rotate3d size={20} />
                 360°
-              </button>{" "}
+              </button>
             </li>
           </ul>
         </div>
@@ -430,11 +449,11 @@ const LandingPage = ({ setIsAuthenticated }) => {
             <button onClick={() => setView("left")}>Left</button>
             <button onClick={() => setView("right")}>Right</button>
             <button onClick={() => setView("isometric")}>Isometric</button>
+            <button onClick={() => handleZoom(1)}>Zoom +</button>
+            <button onClick={() => handleZoom(-1)}>Zoom -</button>
             <button onClick={toggleRotate}>
               {rotate ? "Stop Rotation" : "Rotate"}
             </button>
-            <button onClick={() => handleZoom(1)}>Zoom +</button>
-            <button onClick={() => handleZoom(-1)}>Zoom -</button>
           </div>
 
           {/* 3D Model + Drag Hint */}
@@ -622,8 +641,8 @@ const LandingPage = ({ setIsAuthenticated }) => {
       {/* Feature Slideshow Section */}
       <section id="feature-showcase" className="feature-slideshow-section">
         <div className="container">
-          <h2 className="section-title">Feature Highlights</h2>
-          <p className="section-description">
+          <h2 className="Slider_section-title">Feature Highlights</h2>
+          <p className="Slider_section-description">
             See our powerful features in action
           </p>
 
@@ -671,6 +690,7 @@ const LandingPage = ({ setIsAuthenticated }) => {
       </section>
 
       {/* Feature Slideshow Section */}
+
       <section id="distinctive-edge" className="distinctive-edge-section">
         <div className="container">
           <h2 className="section-title">
@@ -743,9 +763,6 @@ const LandingPage = ({ setIsAuthenticated }) => {
 
           {/* First Showcase Item - Image Left */}
           <div className="showcase-item left-layout">
-            <div className="showcase-image">
-              <img src={view1} alt="Rutomatrix Hardware Front View" />
-            </div>
             <div className="showcase-content">
               <h3>Precision Engineering</h3>
               <p>
@@ -758,6 +775,9 @@ const LandingPage = ({ setIsAuthenticated }) => {
                 <li>Vibration-resistant mounting</li>
                 <li>EMI-shielded circuitry</li>
               </ul>
+            </div>
+            <div className="showcase-image">
+              <img src={view1} alt="Rutomatrix Hardware Front View" />
             </div>
           </div>
 
@@ -791,9 +811,6 @@ const LandingPage = ({ setIsAuthenticated }) => {
 
           {/* Third Showcase Item - Image Left */}
           <div className="showcase-item left-layout">
-            <div className="showcase-image">
-              <img src={view3} alt="Rutomatrix Connectivity Options" />
-            </div>
             <div className="showcase-content">
               <h3>Comprehensive Connectivity</h3>
               <p>
@@ -806,6 +823,9 @@ const LandingPage = ({ setIsAuthenticated }) => {
                 <li>USB 3.0 Gen 2×2</li>
                 <li>USB 2.0 Gen 2x2</li>
               </ul>
+            </div>
+            <div className="showcase-image">
+              <img src={view3} alt="Rutomatrix Connectivity Options" />
             </div>
           </div>
 
@@ -826,7 +846,6 @@ const LandingPage = ({ setIsAuthenticated }) => {
                 <li>Delta cooling fan</li>
               </ul>
             </div>
-
             <div className="showcase-image">
               <img src={view5} alt="Rutomatrix Internal Components" />
             </div>
